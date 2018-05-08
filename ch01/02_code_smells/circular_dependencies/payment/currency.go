@@ -1,3 +1,5 @@
+// +build bad
+
 package payment
 
 import (

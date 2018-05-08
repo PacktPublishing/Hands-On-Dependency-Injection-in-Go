@@ -1,4 +1,4 @@
-package _1_defining_depenency_injection
+package defining_depenency_injection
 
 import (
 	"fmt"

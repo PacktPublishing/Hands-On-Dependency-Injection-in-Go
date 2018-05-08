@@ -1,4 +1,4 @@
-package _2_code_smells
+package code_smells
 
 import (
 	"io"

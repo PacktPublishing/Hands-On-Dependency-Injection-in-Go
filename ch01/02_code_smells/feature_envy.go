@@ -1,8 +1,8 @@
 package code_smells
 
 import (
-	"time"
 	"errors"
+	"time"
 )
 
 type searchRequest struct {

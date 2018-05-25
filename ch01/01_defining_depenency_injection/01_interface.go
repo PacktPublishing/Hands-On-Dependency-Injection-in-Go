@@ -1,8 +1,8 @@
 package defining_depenency_injection
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 )
 
 // Saver persists the supplied bytes
@@ -31,7 +31,7 @@ func SavePerson(person *Person, saver Saver) error {
 
 // Person data object
 type Person struct {
-	Name string
+	Name  string
 	Phone string
 }
 

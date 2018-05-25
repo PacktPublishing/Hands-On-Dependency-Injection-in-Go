@@ -3,8 +3,9 @@
 package payment
 
 import (
-	"github.com/corsc/Hands-On-Dependency-Injection-in-Go/ch01/02_code_smells/circular_dependencies/config"
 	"errors"
+
+	"github.com/corsc/Hands-On-Dependency-Injection-in-Go/ch01/02_code_smells/circular_dependencies/config"
 )
 
 // Currency is custom type for currency

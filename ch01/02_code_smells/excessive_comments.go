@@ -27,3 +27,9 @@ func outputPeople(in []*Person) {
 func sortPeople(in []*Person) {
 	// TODO: implement
 }
+
+// Person data object
+type Person struct {
+	Name  string
+	Phone string
+}

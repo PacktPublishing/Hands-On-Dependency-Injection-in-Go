@@ -1,8 +1,8 @@
 package defining_depenency_injection
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 // LoadPerson will load the requested person by ID.

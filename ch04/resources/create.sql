@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS acme;
+
+CREATE TABLE IF NOT EXISTS `acme`.`person` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `fullName` VARCHAR(100) NOT NULL,
+  `phone` CHAR(15) NOT NULL,
+  `currency` CHAR(3) NOT NULL,
+  `price` DECIMAL(6,2) NOT NULL,
+  PRIMARY KEY (`id`));

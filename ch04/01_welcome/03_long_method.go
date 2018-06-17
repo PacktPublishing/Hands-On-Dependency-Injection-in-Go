@@ -1,4 +1,4 @@
-package srp
+package welcome
 
 import (
 	"database/sql"
@@ -7,10 +7,10 @@ import (
 	"strconv"
 )
 
-func loadUserHandlerLong(resp http.ResponseWriter, req *http.Request) {
+func longMethod(resp http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
-		resp.WriteHeader(http.StatusInternalServerError)
+		resp.WriteHeader(http.StatusPreconditionFailed)
 		return
 	}
 	userID, err := strconv.ParseInt(req.Form.Get("UserID"), 10, 64)
@@ -19,7 +19,7 @@ func loadUserHandlerLong(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	row := DB.QueryRow("SELECT * FROM Users WHERE ID = ?", userID)
+	row := DB.QueryRow("SELECT * FROM people WHERE ID = ?", userID)
 
 	person := &Person{}
 	err = row.Scan(&person.ID, &person.Name, &person.Phone)

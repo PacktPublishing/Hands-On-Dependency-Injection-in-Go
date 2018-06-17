@@ -11,20 +11,13 @@ var (
 	errPeopleNotFound = errors.New("no people found")
 )
 
-// Person is the data transfer object (DTO) for this package
-// NOTE: we have intentionally left off the currency and price.
-type Person struct {
-	FullName string
-	Phone    string
-}
-
 // Lister will attempt to load all people in the database.
 // It can return an error caused by the data layer
 type Lister struct {
 }
 
 // Do will load the people from the data layer
-func (l *Lister) Do() ([]*Person, error) {
+func (l *Lister) Do() ([]*data.Person, error) {
 	// load all people
 	people, err := l.load()
 	if err != nil {
@@ -36,8 +29,7 @@ func (l *Lister) Do() ([]*Person, error) {
 		return nil, errPeopleNotFound
 	}
 
-	// convert/build output
-	return l.buildOutput(people), nil
+	return people, nil
 }
 
 // load all people
@@ -52,19 +44,4 @@ func (l *Lister) load() ([]*data.Person, error) {
 	}
 
 	return people, nil
-}
-
-// Convert from the data layer DTO to the DTO for this layer.
-// Thus encapsulating the implementation details from our users.
-func (l *Lister) buildOutput(people []*data.Person) []*Person {
-	out := make([]*Person, len(people))
-
-	for index, person := range people {
-		out[index] = &Person{
-			FullName: person.FullName,
-			Phone:    person.Phone,
-		}
-	}
-
-	return out
 }

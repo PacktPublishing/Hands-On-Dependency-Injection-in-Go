@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/common/logging"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/logging"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/data"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/get"
 	"github.com/gorilla/mux"
 )
@@ -60,7 +61,7 @@ func (h *GetHandler) extractID(request *http.Request) (int, error) {
 	if !exists {
 		// log and return error
 		err := errors.New("[get] person id missing from request")
-		logging.Warn(err.Error())
+		logging.L.Warn(err.Error())
 		return defaultPersonID, err
 	}
 
@@ -69,7 +70,7 @@ func (h *GetHandler) extractID(request *http.Request) (int, error) {
 	if err != nil {
 		// log and return error
 		err = fmt.Errorf("[get] failed to convert person id into a number. err: %s", err)
-		logging.Error(err.Error())
+		logging.L.Error(err.Error())
 		return defaultPersonID, err
 	}
 
@@ -77,10 +78,13 @@ func (h *GetHandler) extractID(request *http.Request) (int, error) {
 }
 
 // output the supplied person as JSON
-func (h *GetHandler) writeJSON(writer io.Writer, person *get.Person) error {
+func (h *GetHandler) writeJSON(writer io.Writer, person *data.Person) error {
 	output := &getResponseFormat{
+		ID:       person.ID,
 		FullName: person.FullName,
 		Phone:    person.Phone,
+		Currency: person.Currency,
+		Price:    person.Price,
 	}
 
 	// call to http.ResponseWriter.Write() will cause HTTP OK (200) to be output as well
@@ -89,6 +93,9 @@ func (h *GetHandler) writeJSON(writer io.Writer, person *get.Person) error {
 
 // the JSON response format
 type getResponseFormat struct {
-	FullName string `json:"name"`
-	Phone    string `json:"phone"`
+	ID       int     `json:"id"`
+	FullName string  `json:"name"`
+	Phone    string  `json:"phone"`
+	Currency string  `json:"currency"`
+	Price    float64 `json:"price"`
 }

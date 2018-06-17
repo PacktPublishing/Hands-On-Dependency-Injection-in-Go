@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/data"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/list"
 )
 
@@ -33,13 +34,14 @@ func (h *ListHandler) ServeHTTP(response http.ResponseWriter, request *http.Requ
 }
 
 // output the result as JSON
-func (h *ListHandler) writeJSON(writer io.Writer, people []*list.Person) error {
+func (h *ListHandler) writeJSON(writer io.Writer, people []*data.Person) error {
 	output := &listResponseFormat{
 		People: make([]*listResponseItemFormat, len(people)),
 	}
 
 	for index, record := range people {
 		output.People[index] = &listResponseItemFormat{
+			ID:       record.ID,
 			FullName: record.FullName,
 			Phone:    record.Phone,
 		}
@@ -54,6 +56,7 @@ type listResponseFormat struct {
 }
 
 type listResponseItemFormat struct {
+	ID       int    `json:"id"`
 	FullName string `json:"name"`
 	Phone    string `json:"phone"`
 }

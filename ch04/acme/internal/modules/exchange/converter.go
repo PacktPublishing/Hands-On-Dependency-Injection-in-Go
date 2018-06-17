@@ -7,8 +7,8 @@ import (
 	"math"
 	"net/http"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/common/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/config"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/logging"
 )
 
 const (
@@ -52,13 +52,13 @@ func (c *Converter) loadRateFromServer(currency string) (*http.Response, error) 
 	// perform request
 	response, err := http.Get(url)
 	if err != nil {
-		logging.Warn("[exchange] failed to load. err: %s", err)
+		logging.L.Warn("[exchange] failed to load. err: %s", err)
 		return nil, err
 	}
 
 	if response.StatusCode != http.StatusOK {
 		err = fmt.Errorf("request failed with code %d", response.StatusCode)
-		logging.Warn("[exchange] %s", err)
+		logging.L.Warn("[exchange] %s", err)
 		return nil, err
 	}
 
@@ -80,7 +80,7 @@ func (c *Converter) extractRate(response *http.Response, currency string) (float
 	rate, found := data.Rates[currency]
 	if !found {
 		err = fmt.Errorf("response did not include expected currency '%s'", currency)
-		logging.Error("[exchange] %s", err)
+		logging.L.Error("[exchange] %s", err)
 		return defaultPrice, err
 	}
 
@@ -91,14 +91,14 @@ func (c *Converter) extractRate(response *http.Response, currency string) (float
 func (c *Converter) extractResponse(response *http.Response) (*apiResponseFormat, error) {
 	payload, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		logging.Error("[exchange] failed to ready response body. err: %s", err)
+		logging.L.Error("[exchange] failed to ready response body. err: %s", err)
 		return nil, err
 	}
 
 	data := &apiResponseFormat{}
 	err = json.Unmarshal(payload, data)
 	if err != nil {
-		logging.Error("[exchange] error converting response. err: %s", err)
+		logging.L.Error("[exchange] error converting response. err: %s", err)
 		return nil, err
 	}
 

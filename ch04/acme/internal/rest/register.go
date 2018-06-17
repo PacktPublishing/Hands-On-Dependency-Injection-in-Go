@@ -1,12 +1,12 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/common/logging"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/data"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/register"
-	"github.com/gorilla/schema"
 )
 
 // RegisterHandler is the HTTP handler for the "Register" endpoint
@@ -34,29 +34,17 @@ func (h *RegisterHandler) ServeHTTP(response http.ResponseWriter, request *http.
 	}
 
 	// happy path
-	response.WriteHeader(http.StatusCreated)
 	response.Header().Add("Location", fmt.Sprintf("/person/%d/", id))
+	response.WriteHeader(http.StatusCreated)
 }
 
 // extract payload from request
 func (h *RegisterHandler) extractPayload(request *http.Request) (*registerRequest, error) {
-	// parse the HTTP request body
-	err := request.ParseForm()
-	if err != nil {
-		// load and return error
-		logging.Warn("[register] bad request. err: %s", err)
-		return nil, err
-	}
-
-	// build a struct to hold the request data
 	requestPayload := &registerRequest{}
 
-	// decode from request.Form.Values into a struct
-	decoder := schema.NewDecoder()
-	err = decoder.Decode(requestPayload, request.PostForm)
+	decoder := json.NewDecoder(request.Body)
+	err := decoder.Decode(requestPayload)
 	if err != nil {
-		// log and return error
-		logging.Error("[register] failed to decode request. err: %s", err)
 		return nil, err
 	}
 
@@ -65,7 +53,7 @@ func (h *RegisterHandler) extractPayload(request *http.Request) (*registerReques
 
 // call the logic layer
 func (h *RegisterHandler) register(requestPayload *registerRequest) (int, error) {
-	person := &register.Person{
+	person := &data.Person{
 		FullName: requestPayload.FullName,
 		Phone:    requestPayload.Phone,
 		Currency: requestPayload.Currency,

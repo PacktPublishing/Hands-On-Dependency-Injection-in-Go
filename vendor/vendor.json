@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "AIF4lP/6rhhHA4zsdvzfM1uFXi4=",
+			"path": "github.com/DATA-DOG/go-sqlmock",
+			"revision": "b9ca56ce96879f5362120ae10866bbf66f2c5db6",
+			"revisionTime": "2018-03-04T15:30:57Z"
+		}
+	],
+	"rootPath": "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go"
+}

@@ -17,13 +17,14 @@ DEST_FILE=~/Desktop/depgraph.png
 
 # Calculate the package in the current directory and assume this is the base or project package
 BASE_PKG=$(go list)
-
 EXCLUSIONS="$BASE_PKG/vendor"
+BASE_PKG_DELIMITED=$(echo $BASE_PKG | sed 's/\//\\\//g')
 
 # Generate
 godepgraph -s \
         -o "$BASE_PKG" \
-        $BASE_PKG/${PKG} | dot -Tpng -o $DEST_FILE
+        $BASE_PKG/${PKG} |
+        sed "s/$BASE_PKG_DELIMITED//g" | dot -Tpng -o $DEST_FILE
 
 # Open
 open $DEST_FILE

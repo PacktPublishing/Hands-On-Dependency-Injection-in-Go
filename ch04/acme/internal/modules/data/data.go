@@ -3,10 +3,9 @@ package data
 import (
 	"database/sql"
 	"errors"
-	"sync"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/common/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/config"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/logging"
 	// import the MySQL Driver
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -17,30 +16,27 @@ const (
 )
 
 var (
-	dbInit sync.Once
-	dbPool *sql.DB
+	db *sql.DB
 
 	// ErrNotFound is returned when the no records where matched by the query
 	ErrNotFound = errors.New("not found")
 )
 
 func getDB() (*sql.DB, error) {
-	if dbPool == nil {
+	if db == nil {
 		if config.App == nil {
 			return nil, errors.New("config is not initialized")
 		}
 
-		dbInit.Do(func() {
-			var err error
-			dbPool, err = sql.Open("mysql", config.App.DSN)
-			if err != nil {
-				// if the DB cannot be accessed we are dead
-				panic(err.Error())
-			}
-		})
+		var err error
+		db, err = sql.Open("mysql", config.App.DSN)
+		if err != nil {
+			// if the DB cannot be accessed we are dead
+			panic(err.Error())
+		}
 	}
 
-	return dbPool, nil
+	return db, nil
 }
 
 // Person is the data transfer object (DTO) for this package
@@ -66,7 +62,7 @@ type Person struct {
 func Save(in *Person) (int, error) {
 	db, err := getDB()
 	if err != nil {
-		logging.Error("failed to get DB connection. err: %s", err)
+		logging.L.Error("failed to get DB connection. err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -74,14 +70,14 @@ func Save(in *Person) (int, error) {
 	query := "INSERT INTO person (fullname, phone, currency, price) VALUES (?, ?, ?, ?)"
 	result, err := db.Exec(query, in.FullName, in.Phone, in.Currency, in.Price)
 	if err != nil {
-		logging.Error("failed to save person into DB. err: %s", err)
+		logging.L.Error("failed to save person into DB. err: %s", err)
 		return defaultPersonID, err
 	}
 
 	// retrieve and return the ID of the person created
 	id, err := result.LastInsertId()
 	if err != nil {
-		logging.Error("failed to retrieve id of last saved person. err: %s", err)
+		logging.L.Error("failed to retrieve id of last saved person. err: %s", err)
 		return defaultPersonID, err
 	}
 	return int(id), nil
@@ -93,7 +89,7 @@ func Save(in *Person) (int, error) {
 func LoadAll() ([]*Person, error) {
 	db, err := getDB()
 	if err != nil {
-		logging.Error("failed to get DB connection. err: %s", err)
+		logging.L.Error("failed to get DB connection. err: %s", err)
 		return nil, err
 	}
 
@@ -107,13 +103,13 @@ func LoadAll() ([]*Person, error) {
 		_ = rows.Close()
 	}()
 
-	out := []*Person{}
+	var out []*Person
 
 	for rows.Next() {
 		// retrieve columns and populate the person object
 		record, err := populatePerson(rows.Scan)
 		if err != nil {
-			logging.Error("failed to convert query result. err: %s", err)
+			logging.L.Error("failed to convert query result. err: %s", err)
 			return nil, err
 		}
 
@@ -121,7 +117,7 @@ func LoadAll() ([]*Person, error) {
 	}
 
 	if len(out) == 0 {
-		logging.Warn("no people found in the database.")
+		logging.L.Warn("no people found in the database.")
 		return nil, ErrNotFound
 	}
 
@@ -134,7 +130,7 @@ func LoadAll() ([]*Person, error) {
 func Load(in int) (*Person, error) {
 	db, err := getDB()
 	if err != nil {
-		logging.Error("failed to get DB connection. err: %s", err)
+		logging.L.Error("failed to get DB connection. err: %s", err)
 		return nil, err
 	}
 
@@ -146,11 +142,11 @@ func Load(in int) (*Person, error) {
 	out, err := populatePerson(row.Scan)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logging.Warn("failed to load requested person '%d'. err: %s", in, err)
+			logging.L.Warn("failed to load requested person '%d'. err: %s", in, err)
 			return nil, ErrNotFound
 		}
 
-		logging.Error("failed to convert query result. err: %s", err)
+		logging.L.Error("failed to convert query result. err: %s", err)
 		return nil, err
 	}
 	return out, nil

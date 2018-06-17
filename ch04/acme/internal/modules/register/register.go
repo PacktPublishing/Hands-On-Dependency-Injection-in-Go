@@ -3,8 +3,8 @@ package register
 import (
 	"errors"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/common/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/config"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/data"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/modules/exchange"
 )
@@ -19,23 +19,20 @@ var (
 	errNameMissing     = errors.New("name is missing")
 	errPhoneMissing    = errors.New("name is missing")
 	errCurrencyMissing = errors.New("currency is missing")
-	errInvalidCurrency = errors.New("currency is invalid, supported types are AUD, GBP, EUR and USD")
+	errInvalidCurrency = errors.New("currency is invalid, supported types are AUD, CNY, EUR, GBP, JPY, MYR, SGD, USD")
 
 	// a little trick to make checking for supported currencies easier
 	supportedCurrencies = map[string]struct{}{
 		"AUD": {},
-		"GBP": {},
+		"CNY": {},
 		"EUR": {},
+		"GBP": {},
+		"JPY": {},
+		"MYR": {},
+		"SGD": {},
 		"USD": {},
 	}
 )
-
-// Person is the data transfer object (DTO) for this package
-type Person struct {
-	FullName string
-	Phone    string
-	Currency string
-}
 
 // Registerer validates the supplied person, calculates the price in the requested currency and saves the result.
 // It will return an error when:
@@ -47,11 +44,11 @@ type Registerer struct {
 }
 
 // Do is API for this struct
-func (r *Registerer) Do(in *Person) (int, error) {
+func (r *Registerer) Do(in *data.Person) (int, error) {
 	// validate the request
 	err := r.validateInput(in)
 	if err != nil {
-		logging.Warn("input validation failed with err: %s", err)
+		logging.L.Warn("input validation failed with err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -72,7 +69,7 @@ func (r *Registerer) Do(in *Person) (int, error) {
 }
 
 // validate input and return error on fail
-func (r *Registerer) validateInput(in *Person) error {
+func (r *Registerer) validateInput(in *data.Person) error {
 	if in.FullName == "" {
 		return errNameMissing
 	}
@@ -96,7 +93,7 @@ func (r *Registerer) getPrice(currency string) (float64, error) {
 	converter := &exchange.Converter{}
 	price, err := converter.Do(config.App.BasePrice, currency)
 	if err != nil {
-		logging.Warn("failed to convert the price. err: %s", err)
+		logging.L.Warn("failed to convert the price. err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -104,7 +101,7 @@ func (r *Registerer) getPrice(currency string) (float64, error) {
 }
 
 // save the registration
-func (r *Registerer) save(in *Person, price float64) (int, error) {
+func (r *Registerer) save(in *data.Person, price float64) (int, error) {
 	person := &data.Person{
 		FullName: in.FullName,
 		Phone:    in.Phone,

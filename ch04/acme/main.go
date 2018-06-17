@@ -1,7 +1,7 @@
 package main
 
 import (
-	"flag"
+	"context"
 
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/config"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/rest"
@@ -11,21 +11,10 @@ import (
 var configFile string
 
 func main() {
-	// parse flags
-	parseFlags()
-
-	// load config
-	err := config.Load(configFile)
-	if err != nil {
-		panic(err.Error())
-	}
+	// bind stop channel to context
+	ctx := context.Background()
 
 	// start REST server
-	server := rest.New()
-	server.Listen()
-}
-
-func parseFlags() {
-	flag.StringVar(&configFile, "config", "", "JSON config file location")
-	flag.Parse()
+	server := rest.New(config.App.Address)
+	server.Listen(ctx.Done())
 }

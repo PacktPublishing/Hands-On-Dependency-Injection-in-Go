@@ -3,14 +3,11 @@ package data
 import (
 	"testing"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestData_happyPath(t *testing.T) {
-	config.Load("../../../../config.json")
-
 	in := &Person{
 		FullName: "Jake Blues",
 		Phone:    "01234567890",

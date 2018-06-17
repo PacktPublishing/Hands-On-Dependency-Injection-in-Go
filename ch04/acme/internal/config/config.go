@@ -3,9 +3,12 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/common/logging"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch04/acme/internal/logging"
 )
+
+const CONFIG_ENV = "ACME_CONFIG"
 
 // App is the application config
 var App *Config
@@ -28,19 +31,30 @@ type Config struct {
 	ExchangeRateAPIKey string
 }
 
-// Load returns the config loaded from the filename supplied or an error
-func Load(filename string) error {
-	App = &Config{}
+// Load returns the config loaded from environment
+func init() {
+	filename, found := os.LookupEnv(CONFIG_ENV)
+	if !found {
+		logging.L.Error("failed to locate file specfied by %s", CONFIG_ENV)
+		return
+	}
 
+	_ = load(filename)
+}
+
+func load(filename string) error {
+	App = &Config{}
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
-		logging.Error("failed to read config file. err: %s", err)
+		logging.L.Error("failed to read config file. err: %s", err)
 		return err
 	}
 
 	err = json.Unmarshal(bytes, App)
 	if err != nil {
-		logging.Error("failed to parse config file. err : %s", err)
+		logging.L.Error("failed to parse config file. err : %s", err)
+		return err
 	}
+
 	return nil
 }

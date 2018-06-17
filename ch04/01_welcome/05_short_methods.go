@@ -1,9 +1,9 @@
 package welcome
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
-	"encoding/json"
 )
 
 func shortMethods(resp http.ResponseWriter, req *http.Request) {
@@ -19,7 +19,7 @@ func shortMethods(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	outputPerson(person)
+	outputPerson(resp, person)
 }
 
 func extractUserID(req *http.Request) (int64, error) {

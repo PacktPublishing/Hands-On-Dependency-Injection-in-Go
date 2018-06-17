@@ -34,9 +34,9 @@ const (
 )
 
 // a map of valid currencies
-var validCurrencies = map[string]Currency {
-	string(AUD) : AUD,
-	string(CNY) : CNY,
-	string(EUR) : EUR,
-	string(USD) : USD,
+var validCurrencies = map[string]Currency{
+	string(AUD): AUD,
+	string(CNY): CNY,
+	string(EUR): EUR,
+	string(USD): USD,
 }

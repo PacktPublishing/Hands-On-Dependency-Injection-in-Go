@@ -27,7 +27,7 @@ func TestData_happyPath(t *testing.T) {
 	in.ID = resultID
 	assert.Equal(t, in, returned)
 
-	// load ll
+	// load all
 	all, err := LoadAll()
 	require.NoError(t, err)
 	assert.True(t, len(all) > 0)

@@ -108,5 +108,8 @@ func (r *Registerer) save(in *data.Person, price float64) (int, error) {
 		Currency: in.Currency,
 		Price:    price,
 	}
-	return data.Save(person)
+	return saver(person)
 }
+
+// this function as a variable allows us to Monkey Patch during testing
+var saver = data.Save

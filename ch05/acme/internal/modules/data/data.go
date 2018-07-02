@@ -13,6 +13,12 @@ import (
 const (
 	// default person id (returned on error)
 	defaultPersonID = 0
+
+	// SQL statements as constants (to reduce duplication and maintenance in tests)
+	sqlAllColumns = "id, fullname, phone, currency, price"
+	sqlInsert     = "INSERT INTO person (fullname, phone, currency, price) VALUES (?, ?, ?, ?)"
+	sqlLoadAll    = "SELECT " + sqlAllColumns + " FROM person"
+	sqlLoadByID   = "SELECT " + sqlAllColumns + " FROM person WHERE id = ? LIMIT 1"
 )
 
 var (
@@ -22,7 +28,7 @@ var (
 	ErrNotFound = errors.New("not found")
 )
 
-func getDB() (*sql.DB, error) {
+var getDB = func() (*sql.DB, error) {
 	if db == nil {
 		if config.App == nil {
 			return nil, errors.New("config is not initialized")
@@ -40,10 +46,6 @@ func getDB() (*sql.DB, error) {
 }
 
 // Person is the data transfer object (DTO) for this package
-// This is an intentional duplication of the Person definition in order to reduce inter-dependence between packages or
-// the creation of a "common" package.  Shared packages create pressure on the definition such that the external API
-// format resembles the storage format or vice versa.  This pressure makes it harder for these formats to be evolved
-// and maintained separately.
 type Person struct {
 	// ID is the unique ID for this person
 	ID int
@@ -67,8 +69,7 @@ func Save(in *Person) (int, error) {
 	}
 
 	// perform DB insert
-	query := "INSERT INTO person (fullname, phone, currency, price) VALUES (?, ?, ?, ?)"
-	result, err := db.Exec(query, in.FullName, in.Phone, in.Currency, in.Price)
+	result, err := db.Exec(sqlInsert, in.FullName, in.Phone, in.Currency, in.Price)
 	if err != nil {
 		logging.L.Error("failed to save person into DB. err: %s", err)
 		return defaultPersonID, err
@@ -80,6 +81,7 @@ func Save(in *Person) (int, error) {
 		logging.L.Error("failed to retrieve id of last saved person. err: %s", err)
 		return defaultPersonID, err
 	}
+
 	return int(id), nil
 }
 
@@ -94,8 +96,7 @@ func LoadAll() ([]*Person, error) {
 	}
 
 	// perform DB select
-	query := "SELECT id, fullname, phone, currency, price FROM person"
-	rows, err := db.Query(query)
+	rows, err := db.Query(sqlLoadAll)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +128,7 @@ func LoadAll() ([]*Person, error) {
 // Load will attempt to load and return a person.
 // It will return ErrNotFound when the requested person does not exist.
 // Any other errors returned are caused by the underlying database or our connection to it.
-func Load(in int) (*Person, error) {
+func Load(ID int) (*Person, error) {
 	db, err := getDB()
 	if err != nil {
 		logging.L.Error("failed to get DB connection. err: %s", err)
@@ -135,14 +136,13 @@ func Load(in int) (*Person, error) {
 	}
 
 	// perform DB select
-	query := "SELECT id, fullname, phone, currency, price FROM person WHERE id = ? LIMIT 1"
-	row := db.QueryRow(query, in)
+	row := db.QueryRow(sqlLoadByID, ID)
 
 	// retrieve columns and populate the person object
 	out, err := populatePerson(row.Scan)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logging.L.Warn("failed to load requested person '%d'. err: %s", in, err)
+			logging.L.Warn("failed to load requested person '%d'. err: %s", ID, err)
 			return nil, ErrNotFound
 		}
 
@@ -160,4 +160,9 @@ func populatePerson(scanner scanner) (*Person, error) {
 	out := &Person{}
 	err := scanner(&out.ID, &out.FullName, &out.Phone, &out.Currency, &out.Price)
 	return out, err
+}
+
+func init() {
+	// ensure the config is loaded and the db initialized
+	_, _ = getDB()
 }

@@ -34,7 +34,7 @@ func (l *Lister) Do() ([]*data.Person, error) {
 
 // load all people
 func (l *Lister) load() ([]*data.Person, error) {
-	people, err := data.LoadAll()
+	people, err := loader()
 	if err != nil {
 		if err == data.ErrNotFound {
 			// By converting the error we are encapsulating the implementation details from our users.
@@ -45,3 +45,6 @@ func (l *Lister) load() ([]*data.Person, error) {
 
 	return people, nil
 }
+
+// this function as a variable allows us to Monkey Patch during testing
+var loader = data.LoadAll

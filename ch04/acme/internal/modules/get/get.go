@@ -17,20 +17,9 @@ type Getter struct {
 }
 
 // Do will perform the get
-func (g *Getter) Do(in int) (*data.Person, error) {
+func (g *Getter) Do(ID int) (*data.Person, error) {
 	// load person from the data layer
-	person, err := g.load(in)
-	if err != nil {
-		return nil, err
-	}
-
-	// build output
-	return person, nil
-}
-
-// load person from the data layer
-func (g *Getter) load(in int) (*data.Person, error) {
-	person, err := data.Load(in)
+	person, err := data.Load(ID)
 	if err != nil {
 		if err == data.ErrNotFound {
 			// By converting the error we are encapsulating the implementation details from our users.

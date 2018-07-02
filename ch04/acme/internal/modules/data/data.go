@@ -40,10 +40,6 @@ func getDB() (*sql.DB, error) {
 }
 
 // Person is the data transfer object (DTO) for this package
-// This is an intentional duplication of the Person definition in order to reduce inter-dependence between packages or
-// the creation of a "common" package.  Shared packages create pressure on the definition such that the external API
-// format resembles the storage format or vice versa.  This pressure makes it harder for these formats to be evolved
-// and maintained separately.
 type Person struct {
 	// ID is the unique ID for this person
 	ID int
@@ -127,7 +123,7 @@ func LoadAll() ([]*Person, error) {
 // Load will attempt to load and return a person.
 // It will return ErrNotFound when the requested person does not exist.
 // Any other errors returned are caused by the underlying database or our connection to it.
-func Load(in int) (*Person, error) {
+func Load(ID int) (*Person, error) {
 	db, err := getDB()
 	if err != nil {
 		logging.L.Error("failed to get DB connection. err: %s", err)
@@ -136,13 +132,13 @@ func Load(in int) (*Person, error) {
 
 	// perform DB select
 	query := "SELECT id, fullname, phone, currency, price FROM person WHERE id = ? LIMIT 1"
-	row := db.QueryRow(query, in)
+	row := db.QueryRow(query, ID)
 
 	// retrieve columns and populate the person object
 	out, err := populatePerson(row.Scan)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logging.L.Warn("failed to load requested person '%d'. err: %s", in, err)
+			logging.L.Warn("failed to load requested person '%d'. err: %s", ID, err)
 			return nil, ErrNotFound
 		}
 

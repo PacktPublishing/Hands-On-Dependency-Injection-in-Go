@@ -13,7 +13,7 @@ func TestGetter_Do(t *testing.T) {
 
 	// call method
 	getter := &Getter{}
-	person, err := getter.load(ID)
+	person, err := getter.Do(ID)
 
 	// validate expectations
 	require.NoError(t, err)

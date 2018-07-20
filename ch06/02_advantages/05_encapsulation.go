@@ -11,6 +11,10 @@ func (c *CarV2) FillPetrolTank() error {
 	}
 
 	// fill the tank!
+	return c.fill()
+}
 
+func (c CarV2) fill() error {
+	// TODO: implement
 	return nil
 }

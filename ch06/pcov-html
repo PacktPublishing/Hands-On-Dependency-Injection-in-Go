@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "" ]; then
+	echo "No input file. Usage: pcov-html ./your-package-dir/"
+	exit 1
+fi
+
+# Inputs
+# Trim any ... from the end of the supplied directory
+DIR=${1%...}
+# Ensure there is a / at the end of the directory
+PKG_DIR=${DIR%/}/
+
+# Generated coverage
+go test $PKG_DIR -coverprofile=$PKG_DIR/coverage.out ${@:1}
+
+# Convert coverage to HTML
+go tool cover -html=$PKG_DIR/coverage.out
+
+# Clean up after ourselves
+rm $PKG_DIR/coverage.out

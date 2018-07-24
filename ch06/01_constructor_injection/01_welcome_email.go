@@ -37,10 +37,20 @@ func (w *WelcomeSender) buildMessage() string {
 	return ""
 }
 
-// Mailer will send an email
-type Mailer struct{}
+// Mailer sends and receives emails
+type Mailer struct{
+	Host string
+	Port string
+	Username string
+	Password string
+}
 
 func (m *Mailer) Send(to string, body string) error {
 	// send email
 	return nil
+}
+
+func (m *Mailer) Receive(address string) (string, error) {
+	// receive email
+	return "", nil
 }

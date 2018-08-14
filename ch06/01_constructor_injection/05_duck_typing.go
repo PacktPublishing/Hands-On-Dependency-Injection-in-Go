@@ -1,6 +1,8 @@
 package constructor_injection
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Talker interface {
 	Speak() string

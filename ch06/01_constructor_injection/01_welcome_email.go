@@ -38,9 +38,9 @@ func (w *WelcomeSender) buildMessage() string {
 }
 
 // Mailer sends and receives emails
-type Mailer struct{
-	Host string
-	Port string
+type Mailer struct {
+	Host     string
+	Port     string
 	Username string
 	Password string
 }

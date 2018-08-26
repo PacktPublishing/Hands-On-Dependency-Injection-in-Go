@@ -7,7 +7,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/config"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -30,14 +29,19 @@ var (
 	ErrNotFound = errors.New("not found")
 )
 
-var getDB = func() (*sql.DB, error) {
-	if db == nil {
-		if config.App == nil {
-			return nil, errors.New("config is not initialized")
-		}
+// Config is the configuration for the data package
+type Config interface {
+	// Logger returns a reference to the logger
+	Logger() logging.Logger
 
+	// DataDSN returns the data source name
+	DataDSN() string
+}
+
+var getDB = func(cfg Config) (*sql.DB, error) {
+	if db == nil {
 		var err error
-		db, err = sql.Open("mysql", config.App.DSN)
+		db, err = sql.Open("mysql", cfg.DataDSN())
 		if err != nil {
 			// if the DB cannot be accessed we are dead
 			panic(err.Error())
@@ -63,10 +67,10 @@ type Person struct {
 
 // Save will save the supplied person and return the ID of the newly created person or an error.
 // Errors returned are caused by the underlying database or our connection to it.
-func Save(ctx context.Context, in *Person) (int, error) {
-	db, err := getDB()
+func Save(ctx context.Context, cfg Config, in *Person) (int, error) {
+	db, err := getDB(cfg)
 	if err != nil {
-		logging.L.Error("failed to get DB connection. err: %s", err)
+		cfg.Logger().Error("failed to get DB connection. err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -77,14 +81,14 @@ func Save(ctx context.Context, in *Person) (int, error) {
 	// perform DB insert
 	result, err := db.ExecContext(subCtx, sqlInsert, in.FullName, in.Phone, in.Currency, in.Price)
 	if err != nil {
-		logging.L.Error("failed to save person into DB. err: %s", err)
+		cfg.Logger().Error("failed to save person into DB. err: %s", err)
 		return defaultPersonID, err
 	}
 
 	// retrieve and return the ID of the person created
 	id, err := result.LastInsertId()
 	if err != nil {
-		logging.L.Error("failed to retrieve id of last saved person. err: %s", err)
+		cfg.Logger().Error("failed to retrieve id of last saved person. err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -94,10 +98,10 @@ func Save(ctx context.Context, in *Person) (int, error) {
 // LoadAll will attempt to load all people in the database
 // It will return ErrNotFound when there are not people in the database
 // Any other errors returned are caused by the underlying database or our connection to it.
-func LoadAll(ctx context.Context) ([]*Person, error) {
-	db, err := getDB()
+func LoadAll(ctx context.Context, cfg Config) ([]*Person, error) {
+	db, err := getDB(cfg)
 	if err != nil {
-		logging.L.Error("failed to get DB connection. err: %s", err)
+		cfg.Logger().Error("failed to get DB connection. err: %s", err)
 		return nil, err
 	}
 
@@ -120,7 +124,7 @@ func LoadAll(ctx context.Context) ([]*Person, error) {
 		// retrieve columns and populate the person object
 		record, err := populatePerson(rows.Scan)
 		if err != nil {
-			logging.L.Error("failed to convert query result. err: %s", err)
+			cfg.Logger().Error("failed to convert query result. err: %s", err)
 			return nil, err
 		}
 
@@ -128,7 +132,7 @@ func LoadAll(ctx context.Context) ([]*Person, error) {
 	}
 
 	if len(out) == 0 {
-		logging.L.Warn("no people found in the database.")
+		cfg.Logger().Warn("no people found in the database.")
 		return nil, ErrNotFound
 	}
 
@@ -138,10 +142,10 @@ func LoadAll(ctx context.Context) ([]*Person, error) {
 // Load will attempt to load and return a person.
 // It will return ErrNotFound when the requested person does not exist.
 // Any other errors returned are caused by the underlying database or our connection to it.
-func Load(ctx context.Context, ID int) (*Person, error) {
-	db, err := getDB()
+func Load(ctx context.Context, cfg Config, ID int) (*Person, error) {
+	db, err := getDB(cfg)
 	if err != nil {
-		logging.L.Error("failed to get DB connection. err: %s", err)
+		cfg.Logger().Error("failed to get DB connection. err: %s", err)
 		return nil, err
 	}
 
@@ -156,11 +160,11 @@ func Load(ctx context.Context, ID int) (*Person, error) {
 	out, err := populatePerson(row.Scan)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logging.L.Warn("failed to load requested person '%d'. err: %s", ID, err)
+			cfg.Logger().Warn("failed to load requested person '%d'. err: %s", ID, err)
 			return nil, ErrNotFound
 		}
 
-		logging.L.Error("failed to convert query result. err: %s", err)
+		cfg.Logger().Error("failed to convert query result. err: %s", err)
 		return nil, err
 	}
 	return out, nil
@@ -174,9 +178,4 @@ func populatePerson(scanner scanner) (*Person, error) {
 	out := &Person{}
 	err := scanner(&out.ID, &out.FullName, &out.Phone, &out.Currency, &out.Price)
 	return out, err
-}
-
-func init() {
-	// ensure the config is loaded and the db initialized
-	_, _ = getDB()
 }

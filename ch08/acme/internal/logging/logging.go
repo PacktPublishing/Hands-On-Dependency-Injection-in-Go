@@ -4,6 +4,14 @@ import (
 	"fmt"
 )
 
+// Logger is our standard interface
+type Logger interface {
+	Debug(message string, args ...interface{})
+	Info(message string, args ...interface{})
+	Warn(message string, args ...interface{})
+	Error(message string, args ...interface{})
+}
+
 // L is the global instance of the logger
 var L = &LoggerStdOut{}
 

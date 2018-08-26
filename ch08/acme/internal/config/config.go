@@ -29,6 +29,43 @@ type Config struct {
 
 	// ExchangeRateAPIKey is the API for the exchange rate API
 	ExchangeRateAPIKey string
+
+	// environmental dependencies
+	logger logging.Logger
+}
+
+// Logger returns a reference to the singleton logger
+func (c *Config) Logger() logging.Logger {
+	if c.logger == nil {
+		c.logger = &logging.LoggerStdOut{}
+	}
+
+	return c.logger
+}
+
+// RegistrationBasePrice returns the base price for registrations
+func (c *Config) RegistrationBasePrice() float64 {
+	return c.BasePrice
+}
+
+// DataDSN returns the DSN
+func (c *Config) DataDSN() string {
+	return c.DSN
+}
+
+// ExchangeBaseURL returns the Base URL from which we can load exchange rates
+func (c *Config) ExchangeBaseURL() string {
+	return c.ExchangeRateBaseURL
+}
+
+// ExchangeAPIKey returns the DSN
+func (c *Config) ExchangeAPIKey() string {
+	return c.ExchangeRateAPIKey
+}
+
+// BindAddress returns the host and port this service should bind to
+func (c *Config) BindAddress() string {
+	return c.Address
 }
 
 // Load returns the config loaded from environment

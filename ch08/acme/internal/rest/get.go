@@ -27,9 +27,15 @@ type GetModel interface {
 	Do(ID int) (*data.Person, error)
 }
 
+// GetConfig is the config for the Get Handler
+type GetConfig interface {
+	Logger() logging.Logger
+}
+
 // NewGetHandler is the constructor for GetHandler
-func NewGetHandler(model GetModel) *GetHandler {
+func NewGetHandler(cfg GetConfig, model GetModel) *GetHandler {
 	return &GetHandler{
+		cfg:    cfg,
 		getter: model,
 	}
 }
@@ -39,6 +45,7 @@ func NewGetHandler(model GetModel) *GetHandler {
 // or "not found" HTTP 404
 // There are some programmer errors possible but hopefully these will be caught in testing.
 type GetHandler struct {
+	cfg    GetConfig
 	getter GetModel
 }
 
@@ -76,7 +83,7 @@ func (h *GetHandler) extractID(request *http.Request) (int, error) {
 	if !exists {
 		// log and return error
 		err := errors.New("[get] person id missing from request")
-		logging.L.Warn(err.Error())
+		h.cfg.Logger().Warn(err.Error())
 		return defaultPersonID, err
 	}
 
@@ -85,7 +92,7 @@ func (h *GetHandler) extractID(request *http.Request) (int, error) {
 	if err != nil {
 		// log and return error
 		err = fmt.Errorf("[get] failed to convert person id into a number. err: %s", err)
-		logging.L.Error(err.Error())
+		h.cfg.Logger().Error(err.Error())
 		return defaultPersonID, err
 	}
 

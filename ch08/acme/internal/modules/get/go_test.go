@@ -15,13 +15,13 @@ func TestGetter_Do_happyPath(t *testing.T) {
 	ID := 1234
 
 	// monkey patch calls to the data package
-	defer func(original func(_ context.Context, ID int) (*data.Person, error)) {
+	defer func(original func(_ context.Context, _ data.Config, _ int) (*data.Person, error)) {
 		// restore original
 		loader = original
 	}(loader)
 
 	// replace method
-	loader = func(_ context.Context, ID int) (*data.Person, error) {
+	loader = func(_ context.Context, _ data.Config, _ int) (*data.Person, error) {
 		result := &data.Person{
 			ID:       1234,
 			FullName: "Doug",
@@ -47,13 +47,13 @@ func TestGetter_Do_noSuchPerson(t *testing.T) {
 	ID := 5678
 
 	// monkey patch calls to the data package
-	defer func(original func(_ context.Context, ID int) (*data.Person, error)) {
+	defer func(original func(_ context.Context, _ data.Config, _ int) (*data.Person, error)) {
 		// restore original
 		loader = original
 	}(loader)
 
 	// replace method
-	loader = func(_ context.Context, ID int) (*data.Person, error) {
+	loader = func(_ context.Context, _ data.Config, _ int) (*data.Person, error) {
 		var result *data.Person
 		resultErr := data.ErrNotFound
 
@@ -75,13 +75,13 @@ func TestGetter_Do_error(t *testing.T) {
 	ID := 1234
 
 	// monkey patch calls to the data package
-	defer func(original func(_ context.Context, ID int) (*data.Person, error)) {
+	defer func(original func(_ context.Context, _ data.Config, _ int) (*data.Person, error)) {
 		// restore original
 		loader = original
 	}(loader)
 
 	// replace method
-	loader = func(_ context.Context, ID int) (*data.Person, error) {
+	loader = func(_ context.Context, _ data.Config, _ int) (*data.Person, error) {
 		var result *data.Person
 		resultErr := errors.New("failed to load person")
 

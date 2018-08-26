@@ -23,7 +23,7 @@ const (
 // Note: we are expecting sane inputs and therefore skipping input validation
 type Converter struct{}
 
-// Do will perform the load
+// Do will perform the conversion
 func (c *Converter) Do(basePrice float64, currency string) (float64, error) {
 	// load rate from the external API
 	response, err := c.loadRateFromServer(currency)

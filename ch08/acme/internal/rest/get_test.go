@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/modules/data"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -127,7 +128,7 @@ func TestGetHandler_ServeHTTP(t *testing.T) {
 			mockGetModel := scenario.inModelMock()
 
 			// build handler
-			handler := NewGetHandler(mockGetModel)
+			handler := NewGetHandler(&testConfig{}, mockGetModel)
 
 			// perform request
 			response := httptest.NewRecorder()
@@ -140,4 +141,15 @@ func TestGetHandler_ServeHTTP(t *testing.T) {
 			assert.Equal(t, scenario.expectedPayload, string(payload), scenario.desc)
 		})
 	}
+}
+
+type testConfig struct {
+}
+
+func (t *testConfig) Logger() logging.Logger {
+	return &logging.LoggerStdOut{}
+}
+
+func (*testConfig) BindAddress() string {
+	return "0.0.0.0:0"
 }

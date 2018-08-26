@@ -12,13 +12,13 @@ import (
 
 func TestLister_Do_happyPath(t *testing.T) {
 	// monkey patch calls to the data package
-	defer func(original func(_ context.Context) ([]*data.Person, error)) {
+	defer func(original func(_ context.Context, _ data.Config) ([]*data.Person, error)) {
 		// restore original
 		loader = original
 	}(loader)
 
 	// replace method
-	loader = func(_ context.Context) ([]*data.Person, error) {
+	loader = func(_ context.Context, _ data.Config) ([]*data.Person, error) {
 		result := []*data.Person{
 			{
 				ID:       1234,
@@ -46,13 +46,13 @@ func TestLister_Do_happyPath(t *testing.T) {
 
 func TestLister_Do_noResults(t *testing.T) {
 	// monkey patch calls to the data package
-	defer func(original func(_ context.Context) ([]*data.Person, error)) {
+	defer func(original func(_ context.Context, _ data.Config) ([]*data.Person, error)) {
 		// restore original
 		loader = original
 	}(loader)
 
 	// replace method
-	loader = func(_ context.Context) ([]*data.Person, error) {
+	loader = func(_ context.Context, _ data.Config) ([]*data.Person, error) {
 		var result []*data.Person
 		resultErr := data.ErrNotFound
 
@@ -71,13 +71,13 @@ func TestLister_Do_noResults(t *testing.T) {
 
 func TestLister_Do_error(t *testing.T) {
 	// monkey patch calls to the data package
-	defer func(original func(_ context.Context) ([]*data.Person, error)) {
+	defer func(original func(_ context.Context, _ data.Config) ([]*data.Person, error)) {
 		// restore original
 		loader = original
 	}(loader)
 
 	// replace method
-	loader = func(_ context.Context) ([]*data.Person, error) {
+	loader = func(_ context.Context, _ data.Config) ([]*data.Person, error) {
 		var result []*data.Person
 		resultErr := errors.New("failed to load people")
 

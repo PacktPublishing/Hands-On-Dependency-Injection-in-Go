@@ -3,18 +3,25 @@ package rest
 import (
 	"net/http"
 
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 	"github.com/gorilla/mux"
 )
 
+// Config is the config for the REST package
+type Config interface {
+	Logger() logging.Logger
+	BindAddress() string
+}
+
 // New will create and initialize the server
-func New(address string,
+func New(cfg Config,
 	getModel GetModel,
 	listModel ListModel,
 	registerModel RegisterModel) *Server {
 
 	return &Server{
-		address:         address,
-		handlerGet:      NewGetHandler(getModel),
+		address:         cfg.BindAddress(),
+		handlerGet:      NewGetHandler(cfg, getModel),
 		handlerList:     NewListHandler(listModel),
 		handlerNotFound: notFoundHandler,
 		handlerRegister: NewRegisterHandler(registerModel),

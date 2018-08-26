@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/config"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 )
 
@@ -21,12 +20,28 @@ const (
 	defaultPrice = 0.0
 )
 
+// NewConverter creates and initializes the converter
+func NewConverter(cfg Config) *Converter {
+	return &Converter{
+		cfg: cfg,
+	}
+}
+
+// Config is the config for Converter
+type Config interface {
+	Logger() logging.Logger
+	ExchangeBaseURL() string
+	ExchangeAPIKey() string
+}
+
 // Converter will convert the base price to the currency supplied
 // Note: we are expecting sane inputs and therefore skipping input validation
-type Converter struct{}
+type Converter struct {
+	cfg Config
+}
 
-// Do will perform the load
-func (c *Converter) Do(ctx context.Context, basePrice float64, currency string) (float64, error) {
+// Exchange will perform the conversion
+func (c *Converter) Exchange(ctx context.Context, basePrice float64, currency string) (float64, error) {
 	// load rate from the external API
 	response, err := c.loadRateFromServer(ctx, currency)
 	if err != nil {
@@ -47,14 +62,14 @@ func (c *Converter) Do(ctx context.Context, basePrice float64, currency string) 
 func (c *Converter) loadRateFromServer(ctx context.Context, currency string) (*http.Response, error) {
 	// build the request
 	url := fmt.Sprintf(urlFormat,
-		config.App.ExchangeRateBaseURL,
-		config.App.ExchangeRateAPIKey,
+		c.cfg.ExchangeBaseURL(),
+		c.cfg.ExchangeAPIKey(),
 		currency)
 
 	// perform request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logging.L.Warn("[exchange] failed to create request. err: %s", err)
+		c.logger().Warn("[exchange] failed to create request. err: %s", err)
 		return nil, err
 	}
 
@@ -68,13 +83,13 @@ func (c *Converter) loadRateFromServer(ctx context.Context, currency string) (*h
 	// peform the HTTP request
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
-		logging.L.Warn("[exchange] failed to load. err: %s", err)
+		c.logger().Warn("[exchange] failed to load. err: %s", err)
 		return nil, err
 	}
 
 	if response.StatusCode != http.StatusOK {
 		err = fmt.Errorf("request failed with code %d", response.StatusCode)
-		logging.L.Warn("[exchange] %s", err)
+		c.logger().Warn("[exchange] %s", err)
 		return nil, err
 	}
 
@@ -96,7 +111,7 @@ func (c *Converter) extractRate(response *http.Response, currency string) (float
 	rate, found := data.Rates[currency]
 	if !found {
 		err = fmt.Errorf("response did not include expected currency '%s'", currency)
-		logging.L.Error("[exchange] %s", err)
+		c.logger().Error("[exchange] %s", err)
 		return defaultPrice, err
 	}
 
@@ -107,19 +122,23 @@ func (c *Converter) extractRate(response *http.Response, currency string) (float
 func (c *Converter) extractResponse(response *http.Response) (*apiResponseFormat, error) {
 	payload, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		logging.L.Error("[exchange] failed to ready response body. err: %s", err)
+		c.logger().Error("[exchange] failed to ready response body. err: %s", err)
 		return nil, err
 	}
 
 	data := &apiResponseFormat{}
 	err = json.Unmarshal(payload, data)
 	if err != nil {
-		logging.L.Error("[exchange] error converting response. err: %s", err)
+		c.logger().Error("[exchange] error converting response. err: %s", err)
 		return nil, err
 	}
 
 	// happy path
 	return data, nil
+}
+
+func (c *Converter) logger() logging.Logger {
+	return c.cfg.Logger()
 }
 
 // the response format from the exchange rate API

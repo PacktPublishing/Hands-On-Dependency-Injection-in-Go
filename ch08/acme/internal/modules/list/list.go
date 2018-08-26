@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/modules/data"
 )
 
@@ -12,12 +13,26 @@ var (
 	errPeopleNotFound = errors.New("no people found")
 )
 
+// NewLister creates and initializes a Lister
+func NewLister(cfg Config) *Lister {
+	return &Lister{
+		cfg: cfg,
+	}
+}
+
+// Config is the config for Lister
+type Config interface {
+	Logger() logging.Logger
+	DataDSN() string
+}
+
 // Lister will attempt to load all people in the database.
 // It can return an error caused by the data layer
 type Lister struct {
+	cfg Config
 }
 
-// Do will load the people from the data layer
+// Exchange will load the people from the data layer
 func (l *Lister) Do() ([]*data.Person, error) {
 	// load all people
 	people, err := l.load()
@@ -35,7 +50,7 @@ func (l *Lister) Do() ([]*data.Person, error) {
 
 // load all people
 func (l *Lister) load() ([]*data.Person, error) {
-	people, err := loader(context.TODO())
+	people, err := loader(context.TODO(), l.cfg)
 	if err != nil {
 		if err == data.ErrNotFound {
 			// By converting the error we are encapsulating the implementation details from our users.

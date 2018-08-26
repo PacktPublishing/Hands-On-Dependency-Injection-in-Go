@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/config"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/modules/data"
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/modules/exchange"
 )
 
 const (
@@ -35,6 +33,27 @@ var (
 	}
 )
 
+// NewRegisterer creates and initializes a Registerer
+func NewRegisterer(cfg Config, exchanger Exchanger) *Registerer {
+	return &Registerer{
+		cfg:       cfg,
+		exchanger: exchanger,
+	}
+}
+
+// Exchanger will convert from one currency to another
+type Exchanger interface {
+	// Exchange will perform the conversion
+	Exchange(ctx context.Context, basePrice float64, currency string) (float64, error)
+}
+
+// Config is the configuration for the Registerer
+type Config interface {
+	Logger() logging.Logger
+	RegistrationBasePrice() float64
+	DataDSN() string
+}
+
 // Registerer validates the supplied person, calculates the price in the requested currency and saves the result.
 // It will return an error when:
 // -the person object does not include all the fields
@@ -42,6 +61,8 @@ var (
 // -the exchange rate cannot be loaded
 // -the data layer throws an error.
 type Registerer struct {
+	cfg       Config
+	exchanger Exchanger
 }
 
 // Do is API for this struct
@@ -49,7 +70,7 @@ func (r *Registerer) Do(ctx context.Context, in *data.Person) (int, error) {
 	// validate the request
 	err := r.validateInput(in)
 	if err != nil {
-		logging.L.Warn("input validation failed with err: %s", err)
+		r.logger().Warn("input validation failed with err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -91,10 +112,9 @@ func (r *Registerer) validateInput(in *data.Person) error {
 
 // get price in the requested currency
 func (r *Registerer) getPrice(ctx context.Context, currency string) (float64, error) {
-	converter := &exchange.Converter{}
-	price, err := converter.Do(ctx, config.App.BasePrice, currency)
+	price, err := r.exchanger.Exchange(ctx, r.cfg.RegistrationBasePrice(), currency)
 	if err != nil {
-		logging.L.Warn("failed to convert the price. err: %s", err)
+		r.logger().Warn("failed to convert the price. err: %s", err)
 		return defaultPersonID, err
 	}
 
@@ -109,7 +129,11 @@ func (r *Registerer) save(ctx context.Context, in *data.Person, price float64) (
 		Currency: in.Currency,
 		Price:    price,
 	}
-	return saver(ctx, person)
+	return saver(ctx, r.cfg, person)
+}
+
+func (r *Registerer) logger() logging.Logger {
+	return r.cfg.Logger()
 }
 
 // this function as a variable allows us to Monkey Patch during testing

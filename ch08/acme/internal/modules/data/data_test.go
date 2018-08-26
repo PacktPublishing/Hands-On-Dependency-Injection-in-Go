@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch08/acme/internal/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,12 +29,6 @@ func TestSave_happyPath(t *testing.T) {
 	dbMock.ExpectExec(queryRegex).WillReturnResult(sqlmock.NewResult(2, 1))
 
 	// monkey patching starts here
-	defer func(original sql.DB) {
-		// restore original DB (after test)
-		db = &original
-	}(*db)
-
-	// replace db for this test
 	db = testDb
 	// end of monkey patch
 
@@ -46,7 +41,7 @@ func TestSave_happyPath(t *testing.T) {
 	}
 
 	// call function
-	resultID, err := Save(ctx, in)
+	resultID, err := Save(ctx, &testConfig{}, in)
 
 	// validate result
 	require.NoError(t, err)
@@ -70,12 +65,6 @@ func TestSave_insertError(t *testing.T) {
 	dbMock.ExpectExec(queryRegex).WillReturnError(errors.New("failed to insert"))
 
 	// monkey patching starts here
-	defer func(original sql.DB) {
-		// restore original DB (after test)
-		db = &original
-	}(*db)
-
-	// replace db for this test
 	db = testDb
 	// end of monkey patch
 
@@ -88,7 +77,7 @@ func TestSave_insertError(t *testing.T) {
 	}
 
 	// call function
-	resultID, err := Save(ctx, in)
+	resultID, err := Save(ctx, &testConfig{}, in)
 
 	// validate result
 	require.Error(t, err)
@@ -102,13 +91,13 @@ func TestSave_getDBError(t *testing.T) {
 	defer cancel()
 
 	// monkey patching starts here
-	defer func(original func() (*sql.DB, error)) {
+	defer func(original func(_ Config) (*sql.DB, error)) {
 		// restore original DB (after test)
 		getDB = original
 	}(getDB)
 
 	// replace getDB() function for this test
-	getDB = func() (*sql.DB, error) {
+	getDB = func(_ Config) (*sql.DB, error) {
 		return nil, errors.New("getDB() failed")
 	}
 	// end of monkey patch
@@ -122,7 +111,7 @@ func TestSave_getDBError(t *testing.T) {
 	}
 
 	// call function
-	resultID, err := Save(ctx, in)
+	resultID, err := Save(ctx, &testConfig{}, in)
 	require.Error(t, err)
 	assert.Equal(t, defaultPersonID, resultID)
 }
@@ -181,7 +170,7 @@ func TestLoadAll_tableDrivenTest(t *testing.T) {
 		db = testDb
 
 		// call function
-		results, err := LoadAll(ctx)
+		results, err := LoadAll(ctx, &testConfig{})
 
 		// validate results
 		assert.Equal(t, scenario.expectedResults, results, scenario.desc)
@@ -246,7 +235,7 @@ func TestLoad_tableDrivenTest(t *testing.T) {
 		db = testDb
 
 		// call function
-		result, err := Load(ctx, 2)
+		result, err := Load(ctx, &testConfig{}, 2)
 
 		// validate results
 		assert.Equal(t, scenario.expectedResult, result, scenario.desc)
@@ -262,4 +251,16 @@ func TestLoad_tableDrivenTest(t *testing.T) {
 // convert SQL string to regex by treating the entire query as a literal
 func convertSQLToRegex(in string) string {
 	return `\Q` + in + `\E`
+}
+
+type testConfig struct{}
+
+// Logger implements Config
+func (t *testConfig) Logger() logging.Logger {
+	return logging.LoggerStdOut{}
+}
+
+// DataDSN implements Config
+func (t *testConfig) DataDSN() string {
+	return ""
 }

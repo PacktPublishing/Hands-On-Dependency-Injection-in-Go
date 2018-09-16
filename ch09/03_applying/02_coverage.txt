@@ -1,0 +1,14 @@
+-------------------------------------------------------------------------
+|      Branch     |       Dir       |                                   |
+|   Cov% |  Stmts |   Cov% |  Stmts | Package                           |
+-------------------------------------------------------------------------
+|  65.28 |    265 |   0.00 |      7 | acme/                             |
+|  52.17 |     23 |  52.17 |     23 | acme/internal/config/             |
+|   0.00 |      4 |   0.00 |      4 | acme/internal/logging/            |
+|  73.77 |     61 |  73.77 |     61 | acme/internal/modules/data/       |
+|  61.70 |     47 |  61.70 |     47 | acme/internal/modules/exchange/   |
+|  85.71 |      7 |  85.71 |      7 | acme/internal/modules/get/        |
+|  46.15 |     13 |  46.15 |     13 | acme/internal/modules/list/       |
+|  62.07 |     29 |  62.07 |     29 | acme/internal/modules/register/   |
+|  77.03 |     74 |  77.03 |     74 | acme/internal/rest/               |
+-------------------------------------------------------------------------

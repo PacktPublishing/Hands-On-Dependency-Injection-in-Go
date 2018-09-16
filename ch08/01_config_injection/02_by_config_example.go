@@ -7,7 +7,7 @@ import (
 // NewByConfigConstructor is the constructor for MyStruct
 func NewByConfigConstructor(cfg MyConfig, limiter RateLimiter, cache Cache) *MyStruct {
 	return &MyStruct{
-	// code removed
+		// code removed
 	}
 }
 

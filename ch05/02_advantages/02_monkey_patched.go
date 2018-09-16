@@ -30,7 +30,7 @@ var writeFile = ioutil.WriteFile
 // Usage
 func SaveConfigPatchedUsage() {
 	cfg := &Config{
-	// build the config
+		// build the config
 	}
 
 	err := SaveConfigPatched("myfile.json", cfg)

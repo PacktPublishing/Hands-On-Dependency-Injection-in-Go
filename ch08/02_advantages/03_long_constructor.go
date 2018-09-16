@@ -7,7 +7,7 @@ import (
 // NewLongConstructor is the constructor for MyStruct
 func NewLongConstructor(logger Logger, stats Instrumentation, limiter RateLimiter, cache Cache, url string, credentials string) *MyStruct {
 	return &MyStruct{
-	// code removed
+		// code removed
 	}
 }
 

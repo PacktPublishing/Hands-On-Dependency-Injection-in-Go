@@ -31,7 +31,7 @@ type fileWriter func(filename string, data []byte, perm os.FileMode) error
 // Usage
 func SaveConfigInjectedUsage() {
 	cfg := &Config{
-	// build the config
+		// build the config
 	}
 
 	err := SaveConfigInjected(ioutil.WriteFile, "myfile.json", cfg)

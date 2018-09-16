@@ -21,7 +21,7 @@ func DealCards() (player1 []Card, player2 []Card) {
 // returns a new deck of cards
 func newDeck() []Card {
 	return []Card{
-	// code removed
+		// code removed
 	}
 }
 

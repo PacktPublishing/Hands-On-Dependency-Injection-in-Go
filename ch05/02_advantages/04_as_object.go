@@ -32,7 +32,7 @@ func (c ConfigSaver) Save(filename string, cfg *Config) error {
 // Usage
 func ConfigSaverUsage() {
 	cfg := &Config{
-	// build the config
+		// build the config
 	}
 
 	saver := &ConfigSaver{

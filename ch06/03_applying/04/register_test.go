@@ -20,7 +20,7 @@ func TestRegisterHandler_ServeHTTP(t *testing.T) {
 		expectedStatus int
 		expectedHeader string
 	}{
-	// scenarios go here
+		// scenarios go here
 	}
 
 	for _, scenario := range scenarios {

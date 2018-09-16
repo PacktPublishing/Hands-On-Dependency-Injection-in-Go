@@ -3,7 +3,7 @@ package config_injection
 // NewByConfigConstructor is the constructor for MyStruct
 func NewByConfigConstructor(cfg MyConfig, url string, credentials string) *MyStruct {
 	return &MyStruct{
-	// code removed
+		// code removed
 	}
 }
 

@@ -1,4 +1,4 @@
-package code_smells
+package wasted_effort
 
 // Excessive comments
 func outputOrderedPeopleA(in []*Person) {

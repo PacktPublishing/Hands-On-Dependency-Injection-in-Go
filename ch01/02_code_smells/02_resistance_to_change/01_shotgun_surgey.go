@@ -1,4 +1,4 @@
-package code_smells
+package _2_resistance_to_change
 
 import (
 	"database/sql"

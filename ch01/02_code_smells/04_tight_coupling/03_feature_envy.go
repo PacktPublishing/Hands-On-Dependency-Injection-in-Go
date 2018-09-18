@@ -1,4 +1,4 @@
-package code_smells
+package _4_tight_coupling
 
 import (
 	"errors"

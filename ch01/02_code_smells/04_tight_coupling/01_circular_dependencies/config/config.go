@@ -5,7 +5,7 @@ package config
 import (
 	"errors"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch01/02_code_smells/circular_dependencies/payment"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch01/02_code_smells/04_tight_coupling/circular_dependenciescular_dependencies/payment"
 )
 
 // Config defines the JSON format of the config file

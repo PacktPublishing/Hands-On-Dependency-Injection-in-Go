@@ -8,7 +8,7 @@
 
 ## Start the app
 
-`go run acme/main.go -config ./config.json`
+`ACME_CONFIG=$GOPATH/src/github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch09/config.json go run acme/main.go`
 
 ## Run the tests
 (Customize the config and config file location as needed)

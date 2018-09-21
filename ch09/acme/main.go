@@ -11,9 +11,6 @@ import (
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch09/acme/internal/rest"
 )
 
-// config file location (parsed from the command line)
-var configFile string
-
 func main() {
 	// bind stop channel to context
 	ctx := context.Background()

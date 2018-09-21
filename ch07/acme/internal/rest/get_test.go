@@ -120,8 +120,8 @@ func TestGetHandler_ServeHTTP(t *testing.T) {
 		},
 	}
 
-	for _, scenario := range scenarios {
-		// appraise:disable lint/loop_variable
+	for _, s := range scenarios {
+		scenario := s
 		t.Run(scenario.desc, func(t *testing.T) {
 			// define model layer mock
 			mockGetModel := scenario.inModelMock()

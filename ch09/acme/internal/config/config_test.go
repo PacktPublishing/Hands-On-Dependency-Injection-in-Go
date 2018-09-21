@@ -34,7 +34,8 @@ func TestLoad(t *testing.T) {
 		},
 	}
 
-	for _, scenario := range scenarios {
+	for _, s := range scenarios {
+		scenario := s
 		t.Run(scenario.desc, func(t *testing.T) {
 			resultErr := load(scenario.in)
 			require.Equal(t, scenario.expectError, resultErr != nil, "err: %s", resultErr)

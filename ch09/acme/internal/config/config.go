@@ -8,7 +8,8 @@ import (
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch09/acme/internal/logging"
 )
 
-const CONFIG_ENV = "ACME_CONFIG"
+// DefaultEnvVar is the default environment variable the points to the config file
+const DefaultEnvVar = "ACME_CONFIG"
 
 // App is the application config
 var App *Config
@@ -70,9 +71,9 @@ func (c *Config) BindAddress() string {
 
 // Load returns the config loaded from environment
 func init() {
-	filename, found := os.LookupEnv(CONFIG_ENV)
+	filename, found := os.LookupEnv(DefaultEnvVar)
 	if !found {
-		logging.L.Error("failed to locate file specfied by %s", CONFIG_ENV)
+		logging.L.Error("failed to locate file specified by %s", DefaultEnvVar)
 		return
 	}
 

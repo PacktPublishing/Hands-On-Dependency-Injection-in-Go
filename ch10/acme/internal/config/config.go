@@ -68,8 +68,8 @@ func (c *Config) BindAddress() string {
 }
 
 // Load returns the config loaded from environment
-func Load(envVar string) (*Config, error) {
-	filename, found := os.LookupEnv(envVar)
+func Load() (*Config, error) {
+	filename, found := os.LookupEnv(DefaultEnvVar)
 	if !found {
 		err := fmt.Errorf("failed to locate file specified by %s", DefaultEnvVar)
 		logging.L.Error(err.Error())

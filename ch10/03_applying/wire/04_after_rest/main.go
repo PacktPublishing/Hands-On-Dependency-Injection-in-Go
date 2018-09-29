@@ -1,3 +1,6 @@
+//+build ignore
+// Code above this line should be ignored as it's not part of the example
+
 package main
 
 import (

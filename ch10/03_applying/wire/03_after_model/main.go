@@ -1,3 +1,6 @@
+//+build ignore
+// Code above this line should be ignored as it's not part of the example
+
 package main
 
 import (
@@ -17,12 +20,19 @@ func main() {
 	// bind stop channel to context
 	ctx := context.Background()
 
-	// start REST server
-	server, err := initializeServer()
+	// load config
+	cfg, err := initializeConfig()
 	if err != nil {
 		os.Exit(-1)
 	}
 
+	// build model layer
+	getModel, _ := initializeGetter()
+	listModel, _ := initializeLister()
+	registerModel, _ := initializeRegisterer()
+
+	// start REST server
+	server := rest.New(cfg, getModel, listModel, registerModel)
 	server.Listen(ctx.Done())
 }
 
@@ -47,11 +57,4 @@ var wireSet = wire.NewSet(
 	wire.Bind(new(register.Config), &config.Config{}),
 	wire.Bind(new(register.Exchanger), &exchange.Converter{}),
 	register.NewRegisterer,
-
-	// *rest.Server
-	wire.Bind(new(rest.Config), &config.Config{}),
-	wire.Bind(new(rest.GetModel), &get.Getter{}),
-	wire.Bind(new(rest.ListModel), &list.Lister{}),
-	wire.Bind(new(rest.RegisterModel), &register.Registerer{}),
-	rest.New,
 )

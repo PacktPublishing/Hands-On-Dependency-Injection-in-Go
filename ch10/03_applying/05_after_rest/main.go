@@ -1,3 +1,6 @@
+//+build ignore
+// Code above this line should be ignored as it's not part of the example
+
 package main
 
 import (
@@ -27,45 +30,31 @@ func main() {
 }
 
 // List of wire enabled objects
-var wireSetWithoutConfig = wire.NewSet(
-	// *exchange.Converter
-	exchange.NewConverter,
-
-	// *get.Getter
-	get.NewGetter,
-
-	// *list.Lister
-	list.NewLister,
-
-	// *register.Registerer
-	wire.Bind(new(register.Exchanger), &exchange.Converter{}),
-	register.NewRegisterer,
-
-	// *rest.Server
-	wire.Bind(new(rest.GetModel), &get.Getter{}),
-	wire.Bind(new(rest.ListModel), &list.Lister{}),
-	wire.Bind(new(rest.RegisterModel), &register.Registerer{}),
-	rest.New,
-)
-
 var wireSet = wire.NewSet(
-	wireSetWithoutConfig,
-
 	// *config.Config
 	config.Load,
 
 	// *exchange.Converter
 	wire.Bind(new(exchange.Config), &config.Config{}),
+	exchange.NewConverter,
 
 	// *get.Getter
 	wire.Bind(new(get.Config), &config.Config{}),
+	get.NewGetter,
 
 	// *list.Lister
 	wire.Bind(new(list.Config), &config.Config{}),
+	list.NewLister,
 
 	// *register.Registerer
 	wire.Bind(new(register.Config), &config.Config{}),
+	wire.Bind(new(register.Exchanger), &exchange.Converter{}),
+	register.NewRegisterer,
 
 	// *rest.Server
 	wire.Bind(new(rest.Config), &config.Config{}),
+	wire.Bind(new(rest.GetModel), &get.Getter{}),
+	wire.Bind(new(rest.ListModel), &list.Lister{}),
+	wire.Bind(new(rest.RegisterModel), &register.Registerer{}),
+	rest.New,
 )

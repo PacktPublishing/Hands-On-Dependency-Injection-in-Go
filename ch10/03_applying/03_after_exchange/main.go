@@ -1,3 +1,6 @@
+//+build ignore
+// Code above this line should be ignored as it's not part of the example
+
 package main
 
 import (
@@ -17,55 +20,34 @@ func main() {
 	// bind stop channel to context
 	ctx := context.Background()
 
-	// start REST server
-	server, err := initializeServer()
+	// load config
+	cfg, err := initializeConfig()
 	if err != nil {
 		os.Exit(-1)
 	}
 
+	// build the exchanger
+	exchanger, err := initializeExchanger()
+	if err != nil {
+		os.Exit(-1)
+	}
+
+	// build model layer
+	getModel := get.NewGetter(cfg)
+	listModel := list.NewLister(cfg)
+	registerModel := register.NewRegisterer(cfg, exchanger)
+
+	// start REST server
+	server := rest.New(cfg, getModel, listModel, registerModel)
 	server.Listen(ctx.Done())
 }
 
 // List of wire enabled objects
-var wireSetWithoutConfig = wire.NewSet(
-	// *exchange.Converter
-	exchange.NewConverter,
-
-	// *get.Getter
-	get.NewGetter,
-
-	// *list.Lister
-	list.NewLister,
-
-	// *register.Registerer
-	wire.Bind(new(register.Exchanger), &exchange.Converter{}),
-	register.NewRegisterer,
-
-	// *rest.Server
-	wire.Bind(new(rest.GetModel), &get.Getter{}),
-	wire.Bind(new(rest.ListModel), &list.Lister{}),
-	wire.Bind(new(rest.RegisterModel), &register.Registerer{}),
-	rest.New,
-)
-
 var wireSet = wire.NewSet(
-	wireSetWithoutConfig,
-
 	// *config.Config
 	config.Load,
 
 	// *exchange.Converter
 	wire.Bind(new(exchange.Config), &config.Config{}),
-
-	// *get.Getter
-	wire.Bind(new(get.Config), &config.Config{}),
-
-	// *list.Lister
-	wire.Bind(new(list.Config), &config.Config{}),
-
-	// *register.Registerer
-	wire.Bind(new(register.Config), &config.Config{}),
-
-	// *rest.Server
-	wire.Bind(new(rest.Config), &config.Config{}),
+	exchange.NewConverter,
 )

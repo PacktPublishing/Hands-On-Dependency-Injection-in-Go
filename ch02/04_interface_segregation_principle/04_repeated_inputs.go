@@ -20,8 +20,12 @@ func EncryptV2(keyValue Value, monitor Monitor, data []byte) ([]byte, error) {
 	go func() {
 		defer close(result)
 
-		// pull the encryption key from context
-		key := keyValue.Value("encryption-key").([]byte)
+		// pull the encryption key from Value
+		keyRaw := keyValue.Value("encryption-key")
+		if keyRaw == nil {
+			panic("encryption key not found in context")
+		}
+		key := keyRaw.([]byte)
 
 		// perform encryption
 		ciperText := performEncryption(key, data)

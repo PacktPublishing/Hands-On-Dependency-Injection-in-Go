@@ -14,7 +14,11 @@ func Encrypt(ctx context.Context, data []byte) ([]byte, error) {
 		defer close(result)
 
 		// pull the encryption key from context
-		key := ctx.Value("encryption-key").([]byte)
+		keyRaw := ctx.Value("encryption-key")
+		if keyRaw == nil {
+			panic("encryption key not found in context")
+		}
+		key := keyRaw.([]byte)
 
 		// perform encryption
 		ciperText := performEncryption(key, data)

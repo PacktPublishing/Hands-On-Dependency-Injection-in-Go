@@ -65,7 +65,7 @@ func (c *Converter) loadRateFromServer(ctx context.Context, currency string) (*h
 	// replace the default context with our custom one
 	req = req.WithContext(subCtx)
 
-	// peform the HTTP request
+	// perform the HTTP request
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logging.L.Warn("[exchange] failed to load. err: %s", err)

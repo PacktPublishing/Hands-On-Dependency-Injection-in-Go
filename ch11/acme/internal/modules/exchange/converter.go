@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch09/acme/internal/logging"
+	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch11/acme/internal/logging"
 )
 
 const (

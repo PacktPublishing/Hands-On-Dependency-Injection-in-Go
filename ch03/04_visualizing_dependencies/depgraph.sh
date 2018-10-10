@@ -23,6 +23,7 @@ BASE_PKG_DELIMITED=$(echo $BASE_PKG | sed 's/\//\\\//g')
 # Generate
 godepgraph -s \
         -o "$BASE_PKG" \
+        -p "$EXCLUSIONS" \
         $BASE_PKG/${PKG} |
         sed "s/$BASE_PKG_DELIMITED//g" | dot -Tpng -o $DEST_FILE
 

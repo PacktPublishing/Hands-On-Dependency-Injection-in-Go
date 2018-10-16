@@ -1,4 +1,4 @@
-package _1_improvements
+package improvements
 
 import (
 	"fmt"

@@ -42,6 +42,7 @@ func NewRegisterer(cfg Config, exchanger Exchanger) *Registerer {
 }
 
 // Exchanger will convert from one currency to another
+//go:generate mockery -name=Exchanger -case underscore -testonly -inpkg -note @generated
 type Exchanger interface {
 	// Exchange will perform the conversion
 	Exchange(ctx context.Context, basePrice float64, currency string) (float64, error)

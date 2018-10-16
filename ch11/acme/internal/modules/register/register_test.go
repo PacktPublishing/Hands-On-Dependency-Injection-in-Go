@@ -74,6 +74,41 @@ func TestRegisterer_Do_error(t *testing.T) {
 	assert.True(t, mockSaver.AssertExpectations(t))
 }
 
+func TestRegisterer_Do_exchangeError(t *testing.T) {
+	// configure the mocks
+	mockSaver := &mockMySaver{}
+	mockExchanger := &MockExchanger{}
+	mockExchanger.
+		On("Exchange", mock.Anything, mock.Anything, mock.Anything).
+		Return(0.0, errors.New("failed to load conversion")).
+		Once()
+
+	// define context and therefore test timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	// inputs
+	in := &Person{
+		FullName: "Chang",
+		Phone:    "11122233355",
+		Currency: "CNY",
+	}
+
+	// call method
+	registerer := &Registerer{
+		cfg:       &testConfig{},
+		exchanger: mockExchanger,
+		data:      mockSaver,
+	}
+	ID, err := registerer.Do(ctx, in)
+
+	// validate expectations
+	require.Error(t, err)
+	assert.Equal(t, 0, ID)
+	assert.True(t, mockSaver.AssertExpectations(t))
+	assert.True(t, mockExchanger.AssertExpectations(t))
+}
+
 // Stub implementation of Config
 type testConfig struct{}
 

@@ -13,10 +13,8 @@ import (
 
 func TestExternalBoundaryTest(t *testing.T) {
 	// define the config
-	cfg := &testConfig{
-		baseURL: config.App.ExchangeRateBaseURL,
-		apiKey:  config.App.ExchangeRateAPIKey,
-	}
+	cfg, err := config.Load()
+	require.NoError(t, err)
 
 	// create a converter to test
 	converter := NewConverter(cfg)

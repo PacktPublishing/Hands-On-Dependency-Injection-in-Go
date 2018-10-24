@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch11/acme/internal/logging"
 	"github.com/stretchr/testify/assert"
@@ -46,6 +47,35 @@ func (*happyExchangeRateService) ServeHTTP(response http.ResponseWriter, request
 }
 `)
 	response.Write(payload)
+}
+
+func TestExchange_invalidResponseFromServer(t *testing.T) {
+	// start our test server
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		payload := []byte(`invalid payload`)
+		response.Write(payload)
+	}))
+	defer server.Close()
+
+	// inputs
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	basePrice := 12.34
+	currency := "AUD"
+
+	cfg := &testConfig{
+		baseURL: server.URL,
+		apiKey:  "",
+	}
+
+	// create a converter to test
+	converter := NewConverter(cfg)
+	result, resultErr := converter.Exchange(ctx, basePrice, currency)
+
+	// validate response
+	assert.Equal(t, float64(0), result)
+	assert.Error(t, resultErr)
 }
 
 // test implementation of Config

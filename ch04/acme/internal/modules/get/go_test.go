@@ -10,6 +10,7 @@ import (
 func TestGetter_Do(t *testing.T) {
 	// inputs
 	ID := 1
+	name := "John"
 
 	// call method
 	getter := &Getter{}
@@ -18,5 +19,5 @@ func TestGetter_Do(t *testing.T) {
 	// validate expectations
 	require.NoError(t, err)
 	assert.Equal(t, ID, person.ID)
-	assert.Equal(t, "John", person.FullName)
+	assert.Equal(t, name, person.FullName)
 }

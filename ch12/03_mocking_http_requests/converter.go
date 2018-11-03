@@ -54,7 +54,7 @@ func (c *Converter) Exchange(ctx context.Context, basePrice float64, currency st
 	}
 
 	// apply rate and round to 2 decimal places
-	return math.Round(rate*basePrice*100) / 100, nil
+	return math.Floor(rate*basePrice*100) / 100, nil
 }
 
 // load rate from the external API

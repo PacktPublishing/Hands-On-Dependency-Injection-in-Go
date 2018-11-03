@@ -16,7 +16,7 @@ func SaveConfig(filename string, cfg *Config) error {
 	// save file
 	err = ioutil.WriteFile(filename, data, 0666)
 	if err != nil {
-		log.Printf("faied to save file '%s' with err: %s", filename, err)
+		log.Printf("failed to save file '%s' with err: %s", filename, err)
 		return err
 	}
 

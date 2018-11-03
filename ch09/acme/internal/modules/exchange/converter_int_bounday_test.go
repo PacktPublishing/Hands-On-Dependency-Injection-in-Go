@@ -26,7 +26,7 @@ func TestInternalBoundaryTest(t *testing.T) {
 	resultRate, resultErr := converter.Exchange(context.Background(), 100.00, "AUD")
 
 	// validate the result
-	assert.Equal(t, 158.79, resultRate)
+	assert.Equal(t, 158.78, resultRate)
 	assert.NoError(t, resultErr)
 }
 

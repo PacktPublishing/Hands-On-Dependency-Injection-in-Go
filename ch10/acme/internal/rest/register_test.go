@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -70,17 +71,16 @@ func TestRegisterHandler_ServeHTTP(t *testing.T) {
 				return request
 			},
 			inModelMock: func() *MockRegisterModel {
-				// valid downstream configuration
-				resultID := 1234
-				var resultErr error
+				// call to the dependency failed
+				resultErr := errors.New("something failed")
 
 				mockRegisterModel := &MockRegisterModel{}
-				mockRegisterModel.On("Do", mock.Anything, mock.Anything).Return(resultID, resultErr).Once()
+				mockRegisterModel.On("Do", mock.Anything, mock.Anything).Return(0, resultErr).Once()
 
 				return mockRegisterModel
 			},
-			expectedStatus: http.StatusCreated,
-			expectedHeader: "/person/1234/",
+			expectedStatus: http.StatusBadRequest,
+			expectedHeader: "",
 		},
 	}
 

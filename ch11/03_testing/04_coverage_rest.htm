@@ -334,7 +334,7 @@ func (h *RegisterHandler) ServeHTTP(response http.ResponseWriter, request *http.
                 return
         }</span>
 
-        // register person
+        // call the business logic using the request data and context
         <span class="cov8" title="1">id, err := h.register(subCtx, requestPayload)
         if err != nil </span><span class="cov0" title="0">{
                 // not need to log here as we can expect other layers to do so

@@ -44,7 +44,7 @@ func (h *RegisterHandler) ServeHTTP(response http.ResponseWriter, request *http.
 		return
 	}
 
-	// register person
+	// call the business logic using the request data and context
 	id, err := h.register(subCtx, requestPayload)
 	if err != nil {
 		// not need to log here as we can expect other layers to do so

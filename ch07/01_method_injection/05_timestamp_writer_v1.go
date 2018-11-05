@@ -7,7 +7,7 @@ import (
 )
 
 // TimeStampWriterV1 will output the supplied message to writer preceded with a timestamp
-func TimestampWriterV1(writer io.Writer, message string) {
+func TimeStampWriterV1(writer io.Writer, message string) {
 	timestamp := time.Now().Format(time.RFC3339)
-	fmt.Printf("%s -> %s", timestamp, message)
+	fmt.Fprintf(writer, "%s -> %s", timestamp, message)
 }

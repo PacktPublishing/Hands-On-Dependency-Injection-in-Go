@@ -17,6 +17,13 @@ type OrderLoader interface {
 	loadOrder(owner Owner, orderID int) (Order, error)
 }
 
+// NewLoadOrderHandler creates a new instance of LoadOrderHandler
+func NewLoadOrderHandler(loader OrderLoader) (*LoadOrderHandler) {
+	return &LoadOrderHandler{
+		loader: loader,
+	}
+}
+
 // LoadOrderHandler is a HTTP handler that loads orders based on the current user and supplied user ID
 type LoadOrderHandler struct {
 	loader OrderLoader
@@ -38,15 +45,11 @@ func (l *LoadOrderHandler) ServeHTTP(response http.ResponseWriter, request *http
 		return
 	}
 
-	// load order
+	// load order using the current user as a request-scoped dependency
+	// (with method injection)
 	order, err := l.loader.loadOrder(currentUser, orderID)
 	if err != nil {
-		if err == errNotFound {
-			response.WriteHeader(http.StatusNotFound)
-		} else {
-			response.WriteHeader(http.StatusInternalServerError)
-		}
-
+		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

@@ -1,7 +1,0 @@
-{
-  "dsn": "[insert your db config here]",
-  "address": "0.0.0.0:8080",
-  "basePrice":  100.00,
-  "exchangeRateBaseURL": "http://data.fixer.io",
-  "exchangeRateAPIKey": "[insert your API key here]"
-}

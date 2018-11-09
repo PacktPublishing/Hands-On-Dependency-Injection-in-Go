@@ -16,7 +16,7 @@ func TestLoad(t *testing.T) {
 	}{
 		{
 			desc: "happy path",
-			in:   "../../../default-config.json",
+			in:   "../../../../default-config.json",
 			expectedConfig: &Config{
 				DSN:                 "[insert your db config here]",
 				Address:             "0.0.0.0:8080",

@@ -21,7 +21,7 @@ func TestLoad(t *testing.T) {
 				DSN:                 "[insert your db config here]",
 				Address:             "0.0.0.0:8080",
 				BasePrice:           100.00,
-				ExchangeRateBaseURL: "http://data.fixer.io",
+				ExchangeRateBaseURL: "http://apilayer.net",
 				ExchangeRateAPIKey:  "[insert your API key here]",
 			},
 			expectError: false,

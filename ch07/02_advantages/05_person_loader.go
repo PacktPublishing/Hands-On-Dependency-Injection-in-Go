@@ -18,7 +18,7 @@ type OrderLoader interface {
 }
 
 // NewLoadOrderHandler creates a new instance of LoadOrderHandler
-func NewLoadOrderHandler(loader OrderLoader) (*LoadOrderHandler) {
+func NewLoadOrderHandler(loader OrderLoader) *LoadOrderHandler {
 	return &LoadOrderHandler{
 		loader: loader,
 	}

@@ -14,7 +14,7 @@ func TimeStampWriterV2(writer io.Writer, message string) error {
 	}
 
 	timestamp := time.Now().Format(time.RFC3339)
-	fmt.Fprintf(writer,"%s -> %s", timestamp, message)
+	fmt.Fprintf(writer, "%s -> %s", timestamp, message)
 
 	return nil
 }

@@ -27,7 +27,7 @@ func TestInternalBoundaryTest(t *testing.T) {
 	resultRate, resultErr := converter.Exchange(context.Background(), 100.00, "AUD")
 
 	// validate the result
-	assert.Equal(t, 158.78, resultRate)
+	assert.Equal(t, 101.01, resultRate)
 	assert.NoError(t, resultErr)
 }
 
@@ -37,15 +37,15 @@ type happyExchangeRateService struct{}
 func (*happyExchangeRateService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	payload := []byte(`
 {
-  "success":true,
-  "timestamp":1535250248,
-  "base":"EUR",
-  "date":"2018-08-26",
-  "rates": {
-	"AUD":1.587884
-  }
-}
-`)
+   "success":true,
+   "historical":true,
+   "date":"2010-11-09",
+   "timestamp":1289347199,
+   "source":"USD",
+   "quotes":{
+      "USDAUD":0.989981
+   }
+}`)
 	response.Write(payload)
 }
 

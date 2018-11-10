@@ -12,14 +12,14 @@ type happyExchangeRateService struct{}
 func (*happyExchangeRateService) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	payload := []byte(`
 {
-  "success":true,
-  "timestamp":1535250248,
-  "base":"EUR",
-  "date":"2018-08-26",
-  "rates": {
-	"AUD":1.587884
-  }
-}
-`)
+   "success":true,
+   "historical":true,
+   "date":"2010-11-09",
+   "timestamp":1289347199,
+   "source":"USD",
+   "quotes":{
+      "USDAUD":0.989981
+   }
+}`)
 	response.Write(payload)
 }

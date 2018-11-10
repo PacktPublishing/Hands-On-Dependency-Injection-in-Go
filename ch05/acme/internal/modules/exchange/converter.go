@@ -13,7 +13,7 @@ import (
 
 const (
 	// request URL for the exchange rate API
-	urlFormat = "%s/api/latest?access_key=%s&format=1&symbols=%s"
+	urlFormat = "%s/api/historical?access_key=%s&date=2018-06-20&currencies=%s"
 
 	// default price that is sent when an error occurs
 	defaultPrice = 0.0
@@ -38,7 +38,7 @@ func (c *Converter) Do(basePrice float64, currency string) (float64, error) {
 	}
 
 	// apply rate and round to 2 decimal places
-	return math.Floor(rate*basePrice*100) / 100, nil
+	return math.Floor((basePrice/rate)*100) / 100, nil
 }
 
 // load rate from the external API
@@ -77,7 +77,7 @@ func (c *Converter) extractRate(response *http.Response, currency string) (float
 	}
 
 	// pull rate from response data
-	rate, found := data.Rates[currency]
+	rate, found := data.Quotes["USD"+currency]
 	if !found {
 		err = fmt.Errorf("response did not include expected currency '%s'", currency)
 		logging.L.Error("[exchange] %s", err)
@@ -108,5 +108,5 @@ func (c *Converter) extractResponse(response *http.Response) (*apiResponseFormat
 
 // the response format from the exchange rate API
 type apiResponseFormat struct {
-	Rates map[string]float64 `json:"rates"`
+	Quotes map[string]float64 `json:"quotes"`
 }

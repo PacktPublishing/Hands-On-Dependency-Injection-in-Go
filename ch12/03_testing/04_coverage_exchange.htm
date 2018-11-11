@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!-- saved from url=(0098)file:///private/var/folders/j1/jctgvxk55ngftwfqp1wzrt440000gs/T/cover261749083/coverage.html#file0 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/exchange/converter.go (61.7%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: block;">package exchange
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "io/ioutil"
+        "math"
+        "net/http"
+        "time"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+)
+
+const (
+        // request URL for the exchange rate API
+		urlFormat = "%s/api/historical?access_key=%s&date=2018-06-20&currencies=%s"
+
+        // default price that is sent when an error occurs
+        defaultPrice = 0.0
+)
+
+// NewConverter creates and initializes the converter
+func NewConverter(cfg Config) *Converter <span class="cov8" title="1">{
+        return &amp;Converter{
+                cfg: cfg,
+        }
+}</span>
+
+// Config is the config for Converter
+type Config interface {
+        Logger() logging.Logger
+        ExchangeBaseURL() string
+        ExchangeAPIKey() string
+}
+
+// Converter will convert the base price to the currency supplied
+// Note: we are expecting sane inputs and therefore skipping input validation
+type Converter struct {
+        cfg Config
+}
+
+// Exchange will perform the conversion
+func (c *Converter) Exchange(ctx context.Context, basePrice float64, currency string) (float64, error) <span class="cov8" title="1">{
+        // load rate from the external API
+        response, err := c.loadRateFromServer(ctx, currency)
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultPrice, err
+        }</span>
+
+        // extract rate from response
+        <span class="cov8" title="1">rate, err := c.extractRate(response, currency)
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultPrice, err
+        }</span>
+
+        // apply rate and round to 2 decimal places
+        <span class="cov8" title="1">return math.Floor((basePrice/rate)*100) / 100, nil</span>
+}
+
+// load rate from the external API
+func (c *Converter) loadRateFromServer(ctx context.Context, currency string) (*http.Response, error) <span class="cov8" title="1">{
+        // build the request
+        url := fmt.Sprintf(urlFormat,
+                c.cfg.ExchangeBaseURL(),
+                c.cfg.ExchangeAPIKey(),
+                currency)
+
+        // perform request
+        req, err := http.NewRequest("GET", url, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                c.logger().Warn("[exchange] failed to create request. err: %s", err)
+                return nil, err
+        }</span>
+
+        // set latency budget for the upstream call
+        <span class="cov8" title="1">subCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+        defer cancel()
+
+        // replace the default context with our custom one
+        req = req.WithContext(subCtx)
+
+        // perform the HTTP request
+        response, err := http.DefaultClient.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                c.logger().Warn("[exchange] failed to load. err: %s", err)
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if response.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                err = fmt.Errorf("request failed with code %d", response.StatusCode)
+                c.logger().Warn("[exchange] %s", err)
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return response, nil</span>
+}
+
+func (c *Converter) extractRate(response *http.Response, currency string) (float64, error) <span class="cov8" title="1">{
+        defer func() </span><span class="cov8" title="1">{
+                _ = response.Body.Close()
+        }</span>()
+
+        // extract data from response
+        <span class="cov8" title="1">data, err := c.extractResponse(response)
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultPrice, err
+        }</span>
+
+        // pull rate from response data
+        <span class="cov8" title="1">rate, found := data.Quotes["USD" + currency]
+        if !found </span><span class="cov0" title="0">{
+                err = fmt.Errorf("response did not include expected currency '%s'", currency)
+                c.logger().Error("[exchange] %s", err)
+                return defaultPrice, err
+        }</span>
+
+        // happy path
+        <span class="cov8" title="1">return rate, nil</span>
+}
+
+func (c *Converter) extractResponse(response *http.Response) (*apiResponseFormat, error) <span class="cov8" title="1">{
+        payload, err := ioutil.ReadAll(response.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                c.logger().Error("[exchange] failed to ready response body. err: %s", err)
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">data := &amp;apiResponseFormat{}
+        err = json.Unmarshal(payload, data)
+        if err != nil </span><span class="cov0" title="0">{
+                c.logger().Error("[exchange] error converting response. err: %s", err)
+                return nil, err
+        }</span>
+
+        // happy path
+        <span class="cov8" title="1">return data, nil</span>
+}
+
+func (c *Converter) logger() logging.Logger <span class="cov0" title="0">{
+        return c.cfg.Logger()
+}</span>
+
+// the response format from the exchange rate API
+type apiResponseFormat struct {
+        Quotes map[string]float64 `json:"quotes"`
+}
+</pre>
+		
+		</div>
+	
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+
+</body></html>

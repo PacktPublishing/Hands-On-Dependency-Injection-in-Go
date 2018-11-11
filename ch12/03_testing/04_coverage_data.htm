@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<!-- saved from url=(0098)file:///private/var/folders/j1/jctgvxk55ngftwfqp1wzrt440000gs/T/cover386841411/coverage.html#file0 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/data/dao.go (80.0%)</option>
+				
+				<option value="file1">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/data/data.go (55.6%)</option>
+				
+				<option value="file2">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/data/tracker.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: block;">package data
+
+import (
+        "context"
+        "database/sql"
+        "time"
+)
+
+// NewDAO will initialize the database connection pool (if not already done) and return a data access object which
+// can be used to interact with the database
+func NewDAO(cfg Config) *DAO <span class="cov8" title="1">{
+        // initialize the db connection pool
+        _, _ = getDB(cfg)
+
+        return &amp;DAO{
+                cfg: cfg,
+        }
+}</span>
+
+// DAO is a data access object that provides an abstraction over our database interactions.
+type DAO struct {
+        cfg Config
+
+        // Tracker is an optional query timer
+        Tracker QueryTracker
+}
+
+// Load will attempt to load and return a person.
+// It will return ErrNotFound when the requested person does not exist.
+// Any other errors returned are caused by the underlying database or our connection to it.
+func (d *DAO) Load(ctx context.Context, ID int) (*Person, error) <span class="cov8" title="1">{
+        // track processing time
+        defer d.getTracker().Track("Load", time.Now())
+
+        db, err := getDB(d.cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                d.cfg.Logger().Error("failed to get DB connection. err: %s", err)
+                return nil, err
+        }</span>
+
+        // set latency budget for the database call
+        <span class="cov8" title="1">subCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+        defer cancel()
+
+        // perform DB select
+        row := db.QueryRowContext(subCtx, sqlLoadByID, ID)
+
+        // retrieve columns and populate the person object
+        out, err := populatePerson(row.Scan)
+        if err != nil </span><span class="cov8" title="1">{
+                if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                        d.cfg.Logger().Warn("failed to load requested person '%d'. err: %s", ID, err)
+                        return nil, ErrNotFound
+                }</span>
+
+                <span class="cov8" title="1">d.cfg.Logger().Error("failed to convert query result. err: %s", err)
+                return nil, err</span>
+        }
+        <span class="cov8" title="1">return out, nil</span>
+}
+
+// LoadAll will attempt to load all people in the database
+// It will return ErrNotFound when there are not people in the database
+// Any other errors returned are caused by the underlying database or our connection to it.
+func (d *DAO) LoadAll(ctx context.Context) ([]*Person, error) <span class="cov8" title="1">{
+        // track processing time
+        defer d.getTracker().Track("LoadAll", time.Now())
+
+        db, err := getDB(d.cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                d.cfg.Logger().Error("failed to get DB connection. err: %s", err)
+                return nil, err
+        }</span>
+
+        // set latency budget for the database call
+        <span class="cov8" title="1">subCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+        defer cancel()
+
+        // perform DB select
+        rows, err := db.QueryContext(subCtx, sqlLoadAll)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer func() </span><span class="cov8" title="1">{
+                _ = rows.Close()
+        }</span>()
+
+        <span class="cov8" title="1">var out []*Person
+
+        for rows.Next() </span><span class="cov8" title="1">{
+                // retrieve columns and populate the person object
+                record, err := populatePerson(rows.Scan)
+                if err != nil </span><span class="cov0" title="0">{
+                        d.cfg.Logger().Error("failed to convert query result. err: %s", err)
+                        return nil, err
+                }</span>
+
+                <span class="cov8" title="1">out = append(out, record)</span>
+        }
+
+        <span class="cov8" title="1">if len(out) == 0 </span><span class="cov0" title="0">{
+                d.cfg.Logger().Warn("no people found in the database.")
+                return nil, ErrNotFound
+        }</span>
+
+        <span class="cov8" title="1">return out, nil</span>
+}
+
+// Save will save the supplied person and return the ID of the newly created person or an error.
+// Errors returned are caused by the underlying database or our connection to it.
+func (d *DAO) Save(ctx context.Context, in *Person) (int, error) <span class="cov8" title="1">{
+        // track processing time
+        defer d.getTracker().Track("Save", time.Now())
+
+        db, err := getDB(d.cfg)
+        if err != nil </span><span class="cov8" title="1">{
+                d.cfg.Logger().Error("failed to get DB connection. err: %s", err)
+                return defaultPersonID, err
+        }</span>
+
+        // set latency budget for the database call
+        <span class="cov8" title="1">subCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+        defer cancel()
+
+        // perform DB insert
+        result, err := db.ExecContext(subCtx, sqlInsert, in.FullName, in.Phone, in.Currency, in.Price)
+        if err != nil </span><span class="cov8" title="1">{
+                d.cfg.Logger().Error("failed to save person into DB. err: %s", err)
+                return defaultPersonID, err
+        }</span>
+
+        // retrieve and return the ID of the person created
+        <span class="cov8" title="1">id, err := result.LastInsertId()
+        if err != nil </span><span class="cov0" title="0">{
+                d.cfg.Logger().Error("failed to retrieve id of last saved person. err: %s", err)
+                return defaultPersonID, err
+        }</span>
+
+        <span class="cov8" title="1">return int(id), nil</span>
+}
+
+func (d *DAO) getTracker() QueryTracker <span class="cov8" title="1">{
+        if d.Tracker == nil </span><span class="cov8" title="1">{
+                d.Tracker = &amp;noopTracker{}
+        }</span>
+
+        <span class="cov8" title="1">return d.Tracker</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package data
+
+import (
+        "database/sql"
+        "errors"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+        _ "github.com/go-sql-driver/mysql"
+)
+
+const (
+        // default person id (returned on error)
+        defaultPersonID = 0
+
+        // SQL statements as constants (to reduce duplication and maintenance in tests)
+        sqlAllColumns = "id, fullname, phone, currency, price"
+        sqlInsert     = "INSERT INTO person (fullname, phone, currency, price) VALUES (?, ?, ?, ?)"
+        sqlLoadAll    = "SELECT " + sqlAllColumns + " FROM person"
+        sqlLoadByID   = "SELECT " + sqlAllColumns + " FROM person WHERE id = ? LIMIT 1"
+)
+
+var (
+        db *sql.DB
+
+        // ErrNotFound is returned when the no records where matched by the query
+        ErrNotFound = errors.New("not found")
+)
+
+// Config is the configuration for the data package
+type Config interface {
+        // Logger returns a reference to the logger
+        Logger() logging.Logger
+
+        // DataDSN returns the data source name
+        DataDSN() string
+}
+
+var getDB = func(cfg Config) (*sql.DB, error) <span class="cov8" title="1">{
+        if db == nil </span><span class="cov0" title="0">{
+                var err error
+                db, err = sql.Open("mysql", cfg.DataDSN())
+                if err != nil </span><span class="cov0" title="0">{
+                        // if the DB cannot be accessed we are dead
+                        panic(err.Error())</span>
+                }
+        }
+
+        <span class="cov8" title="1">return db, nil</span>
+}
+
+// Person is the data transfer object (DTO) for this package
+type Person struct {
+        // ID is the unique ID for this person
+        ID int
+        // FullName is the name of this person
+        FullName string
+        // Phone is the phone for this person
+        Phone string
+        // Currency is the currency this person has paid in
+        Currency string
+        // Price is the amount (in the above currency) paid by this person
+        Price float64
+}
+
+// custom type so we can convert sql results to easily
+type scanner func(dest ...interface{}) error
+
+// reduce the duplication (and maintenance) between sql.Row and sql.Rows usage
+func populatePerson(scanner scanner) (*Person, error) <span class="cov8" title="1">{
+        out := &amp;Person{}
+        err := scanner(&amp;out.ID, &amp;out.FullName, &amp;out.Phone, &amp;out.Currency, &amp;out.Price)
+        return out, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package data
+
+import (
+        "time"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+)
+
+// QueryTracker is an interface to track query timing
+type QueryTracker interface {
+        // Track will record/out the time a query took by calculating time.Now().Sub(start)
+        Track(key string, start time.Time)
+}
+
+// NO-OP implementation of QueryTracker
+type noopTracker struct{}
+
+// Track implements QueryTracker
+func (_ *noopTracker) Track(_ string, _ time.Time) {<span class="cov8" title="1">
+        // intentionally does nothing
+}</span>
+
+// NewLogTracker returns a Tracker that outputs tracking data to log
+func NewLogTracker(logger logging.Logger) *LogTracker <span class="cov0" title="0">{
+        return &amp;LogTracker{
+                logger: logger,
+        }
+}</span>
+
+// LogTracker implements QueryTracker and outputs to the supplied logger
+type LogTracker struct {
+        logger logging.Logger
+}
+
+// Track implements QueryTracker
+func (l *LogTracker) Track(key string, start time.Time) <span class="cov0" title="0">{
+        l.logger.Info("[%s] Timing: %s\n", key, time.Now().Sub(start).String())
+}</span>
+</pre>
+		
+		</div>
+	
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+
+</body></html>

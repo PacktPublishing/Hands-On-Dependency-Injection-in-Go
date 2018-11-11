@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!-- saved from url=(0098)file:///private/var/folders/j1/jctgvxk55ngftwfqp1wzrt440000gs/T/cover088022372/coverage.html#file0 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/register/register.go (75.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: block;">package register
+
+import (
+        "context"
+        "errors"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/data"
+)
+
+const (
+        // default person id (returned on error)
+        defaultPersonID = 0
+)
+
+var (
+        // validation errors
+        errNameMissing     = errors.New("name is missing")
+        errPhoneMissing    = errors.New("name is missing")
+        errCurrencyMissing = errors.New("currency is missing")
+        errInvalidCurrency = errors.New("currency is invalid, supported types are AUD, CNY, EUR, GBP, JPY, MYR, SGD, USD")
+
+        // a little trick to make checking for supported currencies easier
+        supportedCurrencies = map[string]struct{}{
+                "AUD": {},
+                "CNY": {},
+                "EUR": {},
+                "GBP": {},
+                "JPY": {},
+                "MYR": {},
+                "SGD": {},
+                "USD": {},
+        }
+)
+
+// NewRegisterer creates and initializes a Registerer
+func NewRegisterer(cfg Config, exchanger Exchanger) *Registerer <span class="cov0" title="0">{
+        return &amp;Registerer{
+                cfg:       cfg,
+                exchanger: exchanger,
+        }
+}</span>
+
+// Exchanger will convert from one currency to another
+//go:generate mockery -name=Exchanger -case underscore -testonly -inpkg -note @generated
+type Exchanger interface {
+        // Exchange will perform the conversion
+        Exchange(ctx context.Context, basePrice float64, currency string) (float64, error)
+}
+
+// Config is the configuration for the Registerer
+type Config interface {
+        Logger() logging.Logger
+        RegistrationBasePrice() float64
+        DataDSN() string
+}
+
+// Registerer validates the supplied person, calculates the price in the requested currency and saves the result.
+// It will return an error when:
+// -the person object does not include all the fields
+// -the currency is invalid
+// -the exchange rate cannot be loaded
+// -the data layer throws an error.
+type Registerer struct {
+        cfg       Config
+        exchanger Exchanger
+        data      mySaver
+}
+
+// Do is API for this struct
+func (r *Registerer) Do(ctx context.Context, in *Person) (int, error) <span class="cov8" title="1">{
+        // validate the request
+        err := r.validateInput(in)
+        if err != nil </span><span class="cov0" title="0">{
+                r.logger().Warn("input validation failed with err: %s", err)
+                return defaultPersonID, err
+        }</span>
+
+        // get price in the requested currency
+        <span class="cov8" title="1">price, err := r.getPrice(ctx, in.Currency)
+        if err != nil </span><span class="cov8" title="1">{
+                return defaultPersonID, err
+        }</span>
+
+        // save registration
+        <span class="cov8" title="1">id, err := r.save(ctx, r.convert(in), price)
+        if err != nil </span><span class="cov8" title="1">{
+                // no need to log here as we expect the data layer to do so
+                return defaultPersonID, err
+        }</span>
+
+        <span class="cov8" title="1">return id, nil</span>
+}
+
+// validate input and return error on fail
+func (r *Registerer) validateInput(in *Person) error <span class="cov8" title="1">{
+        if in.FullName == "" </span><span class="cov0" title="0">{
+                return errNameMissing
+        }</span>
+        <span class="cov8" title="1">if in.Phone == "" </span><span class="cov0" title="0">{
+                return errPhoneMissing
+        }</span>
+        <span class="cov8" title="1">if in.Currency == "" </span><span class="cov0" title="0">{
+                return errCurrencyMissing
+        }</span>
+
+        <span class="cov8" title="1">if _, found := supportedCurrencies[in.Currency]; !found </span><span class="cov0" title="0">{
+                return errInvalidCurrency
+        }</span>
+
+        // happy path
+        <span class="cov8" title="1">return nil</span>
+}
+
+// get price in the requested currency
+func (r *Registerer) getPrice(ctx context.Context, currency string) (float64, error) <span class="cov8" title="1">{
+        price, err := r.exchanger.Exchange(ctx, r.cfg.RegistrationBasePrice(), currency)
+        if err != nil </span><span class="cov8" title="1">{
+                r.logger().Warn("failed to convert the price. err: %s", err)
+                return defaultPersonID, err
+        }</span>
+
+        <span class="cov8" title="1">return price, nil</span>
+}
+
+// save the registration
+func (r *Registerer) save(ctx context.Context, in *data.Person, price float64) (int, error) <span class="cov8" title="1">{
+        person := &amp;data.Person{
+                FullName: in.FullName,
+                Phone:    in.Phone,
+                Currency: in.Currency,
+                Price:    price,
+        }
+        return r.getSaver().Save(ctx, person)
+}</span>
+
+func (r *Registerer) getSaver() mySaver <span class="cov8" title="1">{
+        if r.data == nil </span><span class="cov0" title="0">{
+                r.data = data.NewDAO(r.cfg)
+        }</span>
+
+        <span class="cov8" title="1">return r.data</span>
+}
+
+func (r *Registerer) logger() logging.Logger <span class="cov8" title="1">{
+        return r.cfg.Logger()
+}</span>
+
+func (r *Registerer) convert(in *Person) *data.Person <span class="cov8" title="1">{
+        return &amp;data.Person{
+                ID:       in.ID,
+                Currency: in.Currency,
+                FullName: in.FullName,
+                Phone:    in.Phone,
+                Price:    in.Price,
+        }
+}</span>
+
+//go:generate mockery -name=mySaver -case underscore -testonly -inpkg -note @generated
+type mySaver interface {
+        Save(ctx context.Context, in *data.Person) (int, error)
+}
+
+// Person is a copy/sub-set of data.Person so that the relationship does not leak.
+// It also allows us to remove/hide and internal fields
+type Person struct {
+        ID       int
+        FullName string
+        Phone    string
+        Currency string
+        Price    float64
+}
+</pre>
+		
+		</div>
+	
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+
+</body></html>

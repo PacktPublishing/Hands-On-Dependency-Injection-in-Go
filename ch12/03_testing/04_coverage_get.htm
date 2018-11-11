@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!-- saved from url=(0098)file:///private/var/folders/j1/jctgvxk55ngftwfqp1wzrt440000gs/T/cover426703470/coverage.html#file0 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/get/get.go (81.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: block;">package get
+
+import (
+        "context"
+        "errors"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/data"
+)
+
+var (
+        // error thrown when the requested person is not in the database
+        errPersonNotFound = errors.New("person not found")
+)
+
+// NewGetter creates and initializes a Getter
+func NewGetter(cfg Config) *Getter <span class="cov0" title="0">{
+        return &amp;Getter{
+                cfg: cfg,
+        }
+}</span>
+
+// Config is the configuration for Getter
+type Config interface {
+        Logger() logging.Logger
+        DataDSN() string
+}
+
+// Getter will attempt to load a person.
+// It can return an error caused by the data layer or when the requested person is not found
+type Getter struct {
+        cfg  Config
+        data myLoader
+}
+
+// Do will perform the get
+func (g *Getter) Do(ID int) (*Person, error) <span class="cov8" title="1">{
+        // load person from the data layer
+        person, err := g.getLoader().Load(context.TODO(), ID)
+        if err != nil </span><span class="cov8" title="1">{
+                if err == data.ErrNotFound </span><span class="cov8" title="1">{
+                        // By converting the error we are hiding the implementation details from our users.
+                        return nil, errPersonNotFound
+                }</span>
+                <span class="cov8" title="1">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">return g.convert(person), err</span>
+}
+
+func (g *Getter) getLoader() myLoader <span class="cov8" title="1">{
+        if g.data == nil </span><span class="cov0" title="0">{
+                g.data = data.NewDAO(g.cfg)
+        }</span>
+
+        <span class="cov8" title="1">return g.data</span>
+}
+
+func (g *Getter) convert(in *data.Person) *Person <span class="cov8" title="1">{
+        return &amp;Person{
+                ID:       in.ID,
+                Currency: in.Currency,
+                FullName: in.FullName,
+                Phone:    in.Phone,
+                Price:    in.Price,
+        }
+}</span>
+
+//go:generate mockery -name=myLoader -case underscore -testonly -inpkg -note @generated
+type myLoader interface {
+        Load(ctx context.Context, ID int) (*data.Person, error)
+}
+
+// Person is a copy/sub-set of data.Person so that the relationship does not leak.
+// It also allows us to remove/hide and internal fields
+type Person struct {
+        ID       int
+        FullName string
+        Phone    string
+        Currency string
+        Price    float64
+}
+</pre>
+		
+		</div>
+	
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+
+</body></html>

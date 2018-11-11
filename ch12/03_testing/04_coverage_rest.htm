@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<!-- saved from url=(0098)file:///private/var/folders/j1/jctgvxk55ngftwfqp1wzrt440000gs/T/cover676848292/coverage.html#file0 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/rest/get.go (96.2%)</option>
+				
+				<option value="file1">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/rest/list.go (91.7%)</option>
+				
+				<option value="file2">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/rest/not_found.go (100.0%)</option>
+				
+				<option value="file3">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/rest/register.go (90.5%)</option>
+				
+				<option value="file4">github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/rest/server.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: block;">package rest
+
+import (
+        "encoding/json"
+        "errors"
+        "fmt"
+        "io"
+        "net/http"
+        "strconv"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/get"
+        "github.com/gorilla/mux"
+)
+
+const (
+        // default person id (returned on error)
+        defaultPersonID = 0
+
+        // key in the mux where the ID is stored
+        muxVarID = "id"
+)
+
+// GetModel will load a registration
+//go:generate mockery -name=GetModel -case underscore -testonly -inpkg -note @generated
+type GetModel interface {
+        Do(ID int) (*get.Person, error)
+}
+
+// GetConfig is the config for the Get Handler
+type GetConfig interface {
+        Logger() logging.Logger
+}
+
+// NewGetHandler is the constructor for GetHandler
+func NewGetHandler(cfg GetConfig, model GetModel) *GetHandler <span class="cov8" title="1">{
+        return &amp;GetHandler{
+                cfg:    cfg,
+                getter: model,
+        }
+}</span>
+
+// GetHandler is the HTTP handler for the "Get Person" endpoint
+// In this simplified example we are assuming all possible errors are user errors and returning "bad request" HTTP 400
+// or "not found" HTTP 404
+// There are some programmer errors possible but hopefully these will be caught in testing.
+type GetHandler struct {
+        cfg    GetConfig
+        getter GetModel
+}
+
+// ServeHTTP implements http.Handler
+func (h *GetHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) <span class="cov8" title="1">{
+        // extract person id from request
+        id, err := h.extractID(request)
+        if err != nil </span><span class="cov8" title="1">{
+                // output error
+                response.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        // attempt get
+        <span class="cov8" title="1">person, err := h.getter.Do(id)
+        if err != nil </span><span class="cov8" title="1">{
+                // not need to log here as we can expect other layers to do so
+                response.WriteHeader(http.StatusNotFound)
+                return
+        }</span>
+
+        // happy path
+        <span class="cov8" title="1">err = h.writeJSON(response, person)
+        if err != nil </span><span class="cov0" title="0">{
+                // this error should not happen but if it does there is nothing we can do to recover
+                response.WriteHeader(http.StatusInternalServerError)
+        }</span>
+}
+
+// extract the person ID from the request
+func (h *GetHandler) extractID(request *http.Request) (int, error) <span class="cov8" title="1">{
+        // ID is part of the URL, so we extract it from there
+        vars := mux.Vars(request)
+        idAsString, exists := vars[muxVarID]
+        if !exists </span><span class="cov8" title="1">{
+                // log and return error
+                err := errors.New("[get] person id missing from request")
+                h.cfg.Logger().Warn(err.Error())
+                return defaultPersonID, err
+        }</span>
+
+        // convert ID to int
+        <span class="cov8" title="1">id, err := strconv.Atoi(idAsString)
+        if err != nil </span><span class="cov8" title="1">{
+                // log and return error
+                err = fmt.Errorf("[get] failed to convert person id into a number. err: %s", err)
+                h.cfg.Logger().Error(err.Error())
+                return defaultPersonID, err
+        }</span>
+
+        <span class="cov8" title="1">return id, nil</span>
+}
+
+// output the supplied person as JSON
+func (h *GetHandler) writeJSON(writer io.Writer, person *get.Person) error <span class="cov8" title="1">{
+        output := &amp;getResponseFormat{
+                ID:       person.ID,
+                FullName: person.FullName,
+                Phone:    person.Phone,
+                Currency: person.Currency,
+                Price:    person.Price,
+        }
+
+        // call to http.ResponseWriter.Write() will cause HTTP OK (200) to be output as well
+        return json.NewEncoder(writer).Encode(output)
+}</span>
+
+// the JSON response format
+type getResponseFormat struct {
+        ID       int     `json:"id"`
+        FullName string  `json:"name"`
+        Phone    string  `json:"phone"`
+        Currency string  `json:"currency"`
+        Price    float64 `json:"price"`
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package rest
+
+import (
+        "encoding/json"
+        "io"
+        "net/http"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/list"
+)
+
+// ListModel will load all registrations
+//go:generate mockery -name=ListModel -case underscore -testonly -inpkg -note @generated
+type ListModel interface {
+        Do() ([]*list.Person, error)
+}
+
+// NewLister is the constructor for ListHandler
+func NewListHandler(model ListModel) *ListHandler <span class="cov8" title="1">{
+        return &amp;ListHandler{
+                lister: model,
+        }
+}</span>
+
+// ListHandler is the HTTP handler for the "List Do people" endpoint
+// In this simplified example we are assuming all possible errors are system errors (HTTP 500)
+type ListHandler struct {
+        lister ListModel
+}
+
+// ServeHTTP implements http.Handler
+func (h *ListHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) <span class="cov8" title="1">{
+        // attempt loadAll
+        people, err := h.lister.Do()
+        if err != nil </span><span class="cov8" title="1">{
+                // not need to log here as we can expect other layers to do so
+                response.WriteHeader(http.StatusNotFound)
+                return
+        }</span>
+
+        // happy path
+        <span class="cov8" title="1">err = h.writeJSON(response, people)
+        if err != nil </span><span class="cov0" title="0">{
+                // this error should not happen but if it does there is nothing we can do to recover
+                response.WriteHeader(http.StatusInternalServerError)
+        }</span>
+}
+
+// output the result as JSON
+func (h *ListHandler) writeJSON(writer io.Writer, people []*list.Person) error <span class="cov8" title="1">{
+        output := &amp;listResponseFormat{
+                People: make([]*listResponseItemFormat, len(people)),
+        }
+
+        for index, record := range people </span><span class="cov8" title="1">{
+                output.People[index] = &amp;listResponseItemFormat{
+                        ID:       record.ID,
+                        FullName: record.FullName,
+                        Phone:    record.Phone,
+                }
+        }</span>
+
+        // call to http.ResponseWriter.Write() will cause HTTP OK (200) to be output as well
+        <span class="cov8" title="1">return json.NewEncoder(writer).Encode(output)</span>
+}
+
+type listResponseFormat struct {
+        People []*listResponseItemFormat `json:"people"`
+}
+
+type listResponseItemFormat struct {
+        ID       int    `json:"id"`
+        FullName string `json:"name"`
+        Phone    string `json:"phone"`
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package rest
+
+import (
+        "net/http"
+)
+
+func notFoundHandler(response http.ResponseWriter, _ *http.Request) <span class="cov8" title="1">{
+        response.WriteHeader(http.StatusNotFound)
+        _, _ = response.Write([]byte(`Not found`))
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package rest
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "net/http"
+        "time"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/register"
+)
+
+// RegisterModel will validate and save a registration
+//go:generate mockery -name=RegisterModel -case underscore -testonly -inpkg -note @generated
+type RegisterModel interface {
+        Do(ctx context.Context, in *register.Person) (int, error)
+}
+
+// NewRegisterHandler is the constructor for RegisterHandler
+func NewRegisterHandler(model RegisterModel) *RegisterHandler <span class="cov8" title="1">{
+        return &amp;RegisterHandler{
+                registerer: model,
+        }
+}</span>
+
+// RegisterHandler is the HTTP handler for the "Register" endpoint
+// In this simplified example we are assuming all possible errors are user errors and returning "bad request" HTTP 400.
+// There are some programmer errors possible but hopefully these will be caught in testing.
+type RegisterHandler struct {
+        registerer RegisterModel
+}
+
+// ServeHTTP implements http.Handler
+func (h *RegisterHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) <span class="cov8" title="1">{
+        // set latency budget for this API
+        subCtx, cancel := context.WithTimeout(request.Context(), 1500*time.Millisecond)
+        defer cancel()
+
+        // extract payload from request
+        requestPayload, err := h.extractPayload(request)
+        if err != nil </span><span class="cov8" title="1">{
+                // output error
+                response.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        // call the business logic using the request data and context
+        <span class="cov8" title="1">id, err := h.register(subCtx, requestPayload)
+        if err != nil </span><span class="cov0" title="0">{
+                // not need to log here as we can expect other layers to do so
+                response.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        // happy path
+        <span class="cov8" title="1">response.Header().Add("Location", fmt.Sprintf("/person/%d/", id))
+        response.WriteHeader(http.StatusCreated)</span>
+}
+
+// extract payload from request
+func (h *RegisterHandler) extractPayload(request *http.Request) (*registerRequest, error) <span class="cov8" title="1">{
+        requestPayload := &amp;registerRequest{}
+
+        decoder := json.NewDecoder(request.Body)
+        err := decoder.Decode(requestPayload)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return requestPayload, nil</span>
+}
+
+// call the logic layer
+func (h *RegisterHandler) register(ctx context.Context, requestPayload *registerRequest) (int, error) <span class="cov8" title="1">{
+        person := &amp;register.Person{
+                FullName: requestPayload.FullName,
+                Phone:    requestPayload.Phone,
+                Currency: requestPayload.Currency,
+        }
+
+        return h.registerer.Do(ctx, person)
+}</span>
+
+// register endpoint request format
+type registerRequest struct {
+        // FullName of the person
+        FullName string `json:"fullName"`
+        // Phone of the person
+        Phone string `json:"phone"`
+        // Currency the wish to register in
+        Currency string `json:"currency"`
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package rest
+
+import (
+        "net/http"
+
+        "github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/logging"
+        "github.com/gorilla/mux"
+)
+
+// Config is the config for the REST package
+type Config interface {
+        Logger() logging.Logger
+        BindAddress() string
+}
+
+// New will create and initialize the server
+func New(cfg Config,
+        getModel GetModel,
+        listModel ListModel,
+        registerModel RegisterModel) *Server <span class="cov0" title="0">{
+
+        return &amp;Server{
+                address:         cfg.BindAddress(),
+                handlerGet:      NewGetHandler(cfg, getModel),
+                handlerList:     NewListHandler(listModel),
+                handlerNotFound: notFoundHandler,
+                handlerRegister: NewRegisterHandler(registerModel),
+        }
+}</span>
+
+// Server is the HTTP REST server
+type Server struct {
+        address string
+        server  *http.Server
+
+        handlerGet      http.Handler
+        handlerList     http.Handler
+        handlerNotFound http.HandlerFunc
+        handlerRegister http.Handler
+}
+
+// Listen will start a HTTP rest for this service
+func (s *Server) Listen(stop &lt;-chan struct{}) <span class="cov0" title="0">{
+        router := s.buildRouter()
+
+        // create the HTTP server
+        s.server = &amp;http.Server{
+                Handler: router,
+                Addr:    s.address,
+        }
+
+        // listen for shutdown
+        go func() </span><span class="cov0" title="0">{
+                // wait for shutdown signal
+                &lt;-stop
+
+                _ = s.server.Close()
+        }</span>()
+
+        // start the HTTP server
+        <span class="cov0" title="0">_ = s.server.ListenAndServe()</span>
+}
+
+// configure the endpoints to handlers
+func (s *Server) buildRouter() http.Handler <span class="cov0" title="0">{
+        router := mux.NewRouter()
+
+        // map URL endpoints to HTTP handlers
+        router.Handle("/person/{id}/", s.handlerGet).Methods("GET")
+        router.Handle("/person/list", s.handlerList).Methods("GET")
+        router.Handle("/person/register", s.handlerRegister).Methods("POST")
+
+        // convert a "catch all" not found handler
+        router.NotFoundHandler = s.handlerNotFound
+
+        return router
+}</span>
+</pre>
+		
+		</div>
+	
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+
+</body></html>

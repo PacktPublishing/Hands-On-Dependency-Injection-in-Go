@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-func NewHandler(logger Logger, stats Instrumentation,
-	parse Parser, formatter Formatter,
+func NewMyHandler(logger Logger, stats Instrumentation,
+	parser Parser, formatter Formatter,
 	limiter RateLimiter,
 	cache Cache, db Datastore) *MyHandler {
 

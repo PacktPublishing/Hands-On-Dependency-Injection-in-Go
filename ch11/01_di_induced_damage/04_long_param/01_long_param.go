@@ -5,18 +5,25 @@ import (
 	"time"
 )
 
-func NewMyHandler(config Config,
-	parser Parser, formatter Formatter,
+func NewFancyFormatHandler(config Config,
+	parser Parser,
 	limiter RateLimiter,
-	loader Loader) *MyHandler {
+	loader Loader) *FancyFormatHandler {
 
-	return &MyHandler{
-		config:    config,
-		parser:    parser,
-		formatter: formatter,
-		limiter:   limiter,
-		loader:    loader,
+	return &FancyFormatHandler{
+		&MyHandler{
+			config:    config,
+			formatter: &FancyFormatter{},
+			parser:    parser,
+			limiter:   limiter,
+			loader:    loader,
+		},
 	}
+}
+
+// FancyFormatHandler does something fancy
+type FancyFormatHandler struct {
+	*MyHandler
 }
 
 // MyHandler does something fantastic
@@ -76,6 +83,15 @@ type Parser interface {
 // Formatter will build the output
 type Formatter interface {
 	Format(resp http.ResponseWriter, data []byte) error
+}
+
+// FancyFormatter Implements Formatter
+type FancyFormatter struct{}
+
+func (f *FancyFormatter) Format(response http.ResponseWriter, data []byte) error {
+	// does something fancy with the data
+	_, err := response.Write([]byte(`something fancy!`))
+	return err
 }
 
 // RateLimiter limits how many concurrent requests we can make or process

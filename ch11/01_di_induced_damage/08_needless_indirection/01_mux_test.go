@@ -1,26 +1,21 @@
 package needless_indirection
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBuildRouter(t *testing.T) {
-	router := http.NewServeMux()
+	// build mock
+	mockRouter := &MockMyMux{}
+	mockRouter.On("Handle", "/get", &getEndpoint{}).Once()
+	mockRouter.On("Handle", "/list", &listEndpoint{}).Once()
+	mockRouter.On("Handle", "/save", &saveEndpoint{}).Once()
 
 	// call function
-	buildRouter(router)
+	buildRouter(mockRouter)
 
-	// assertions
-	assert.IsType(t, &getEndpoint{}, extractHandler(router, "/get"))
-	assert.IsType(t, &listEndpoint{}, extractHandler(router, "/list"))
-	assert.IsType(t, &saveEndpoint{}, extractHandler(router, "/save"))
-}
-
-func extractHandler(router *http.ServeMux, path string) http.Handler {
-	req, _ := http.NewRequest("GET", path, nil)
-	handler, _ := router.Handler(req)
-	return handler
+	// assert expectations
+	assert.True(t, mockRouter.AssertExpectations(t))
 }

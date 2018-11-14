@@ -18,13 +18,6 @@ const (
 	defaultPrice = 0.0
 )
 
-// NewConverter creates and initializes the converter
-func NewConverter(cfg Config) *Converter {
-	return &Converter{
-		cfg: cfg,
-	}
-}
-
 // Config is the config for Converter
 type Config interface {
 	Logger() Logger
@@ -32,11 +25,18 @@ type Config interface {
 	ExchangeAPIKey() string
 }
 
+// NewConverter creates and initializes the converter
+func NewConverter(cfg Config, requester Requester) *Converter {
+	return &Converter{
+		cfg:       cfg,
+		requester: requester,
+	}
+}
+
 // Converter will convert the base price to the currency supplied
-// Note: we are expecting sane inputs and therefore skipping input validation
 type Converter struct {
 	cfg       Config
-	requester requester
+	requester Requester
 }
 
 // Exchange will perform the conversion
@@ -66,7 +66,7 @@ func (c *Converter) loadRateFromServer(ctx context.Context, currency string) (*h
 		currency)
 
 	// perform request
-	response, err := c.getRequester().doRequest(ctx, url)
+	response, err := c.requester.doRequest(ctx, url)
 	if err != nil {
 		c.logger().Warn("[exchange] failed to load. err: %s", err)
 		return nil, err
@@ -126,28 +126,22 @@ func (c *Converter) logger() Logger {
 	return c.cfg.Logger()
 }
 
-func (c *Converter) getRequester() requester {
-	if c.requester == nil {
-		c.requester = &requesterer{}
-	}
-
-	return c.requester
-}
-
 // the response format from the exchange rate API
 type apiResponseFormat struct {
 	Quotes map[string]float64 `json:"quotes"`
 }
 
-//go:generate mockery -name=requester -case underscore -testonly -inpkg -note @generated
-type requester interface {
+// Requester builds and sending HTTP requests
+//go:generate mockery -name=Requester -case underscore -testonly -inpkg -note @generated
+type Requester interface {
 	doRequest(ctx context.Context, url string) (*http.Response, error)
 }
 
-type requesterer struct {
+// Requesterer is the default implementation of Requester
+type Requesterer struct {
 }
 
-func (r *requesterer) doRequest(ctx context.Context, url string) (*http.Response, error) {
+func (r *Requesterer) doRequest(ctx context.Context, url string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

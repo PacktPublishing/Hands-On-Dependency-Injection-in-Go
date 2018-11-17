@@ -67,11 +67,17 @@ To run sample service for a particular chapter:
 1. Use a command similar to the following (which is for ch04):
 `ACME_CONFIG=$GOPATH/src/github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/config.json go run ./ch04/acme/main.go` 
 
-## Running tests for the sample service
+### Special instructions for chapters 10-12
+
+As we have multiple files and tests in the `main` package, we cannot use the standard `go run ./ch10/acme/main.go` to run the service.
+
+Instead we need to modify the command to `go run ./ch10/acme/main.go ./ch10/acme/wire_gen.go`
+
+## Running tests for a chapter
 
 To run sample service for a particular chapter you can use a command similar to the follow (which is for ch04):
 
 1. First make sure you are in the base of this repository:
 `cd $GOPATH/src/github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/` 
 1. Use a command similar to the following (which is for ch04):
-`ACME_CONFIG=$GOPATH/src/github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/config.json go test ./ch04/acme/...` 
+`ACME_CONFIG=$GOPATH/src/github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/config.json go test ./ch04/...` 

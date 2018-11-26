@@ -53,13 +53,10 @@ We also provide a PDF file that has color images of the screenshots/diagrams use
 
 * Go Standard Library Cookbook [[Packt]](https://www.packtpub.com/application-development/go-standard-library-cookbook?utm_source=github&utm_medium=repository&utm_campaign=9781788475273 ) [[Amazon]](https://www.amazon.com/dp/1788475275)
 
-*  [[Packt]]() [[Amazon]](https://www.amazon.com/dp/)
-
-*  [[Packt]]() [[Amazon]](https://www.amazon.com/dp/)
 
 ## Get to Know the Author
 **Corey Scott**
-is a senior software engineer currently living in Melbourne, Australia. He’s been programming professionally since 2000, with the last 5 years spent building large-scale distributed services in Go.
+is a senior software engineer currently living in Melbourne, Australia. Heâ€™s been programming professionally since 2000, with the last 5 years spent building large-scale distributed services in Go.
 An occasional technical speaker and blogger on a variety of software-related topics, he is passionate about designing and building quality software. He believes that software engineering is a craft that should be honed, debated, and continuously improved. He takes a pragmatic, non-zealot approach to coding and is always up for a good debate about software engineering, continuous delivery, testing, or clean coding.
 
 

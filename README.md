@@ -10,13 +10,13 @@ This is the code repository for [Hands-On Dependency Injection in Go](https://ww
 Hands-On Dependency Injection in Go takes you on a journey, refactoring existing code to adopt dependency injection (DI) using various methods available in Go.
 
 This book covers the following exciting features:
-*Understand the benefits of dependency injection 
-*Explore SOLID design principles and how they relate to Go 
-*Analyze various dependency injection patterns available in Go 
-*Leverage DI to produce high quality, loosely coupled Go code 
-*Refactor existing Go code to adopt dependency injection 
-*Discover tools to improve your code's testability and test coverage 
-*Generate and interpret Go dependency graphs 
+* Understand the benefits of dependency injection 
+* Explore SOLID design principles and how they relate to Go 
+* Analyze various dependency injection patterns available in Go 
+* Leverage DI to produce high quality, loosely coupled Go code 
+* Refactor existing Go code to adopt dependency injection 
+* Discover tools to improve your code's testability and test coverage 
+* Generate and interpret Go dependency graphs 
 
 If you feel this book is for you, get your [copy](https://www.amazon.com/dp/1789132762) today!
 

@@ -8,7 +8,7 @@ package main
 import (
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch10/acme/internal/config"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch10/acme/internal/modules/exchange"
-	"github.com/google/go-cloud/wire"
+	"github.com/google/wire"
 )
 
 // The build tag makes sure the stub is not built in the final build.

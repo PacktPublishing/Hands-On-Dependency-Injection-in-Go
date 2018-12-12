@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/go-cloud/wire"
+	"github.com/google/wire"
 )
 
 func main() {

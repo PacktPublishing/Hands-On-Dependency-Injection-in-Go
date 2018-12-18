@@ -55,7 +55,7 @@ type Converter interface {
 
 type myConverter struct{}
 
-func (m *myConverter) Convert(in float64) (float64, error)  {
+func (m *myConverter) Convert(in float64) (float64, error) {
 	// not implemented
 	return 0, nil
 }

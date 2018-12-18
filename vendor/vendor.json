@@ -26,12 +26,6 @@
 			"revisionTime": "2018-04-13T18:15:57Z"
 		},
 		{
-			"checksumSHA1": "fSFiGY9GTodzVHZiRJ1FlrlIqHQ=",
-			"path": "github.com/google/go-cloud/wire",
-			"revision": "79eb5e79e592b1f50aea931270f5a4b9e264adeb",
-			"revisionTime": "2018-09-24T21:28:00Z"
-		},
-		{
 			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
 			"path": "github.com/gorilla/context",
 			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",

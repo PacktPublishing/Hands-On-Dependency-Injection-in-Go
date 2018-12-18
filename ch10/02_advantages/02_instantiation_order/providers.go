@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 
-	"github.com/google/go-cloud/wire"
+	"github.com/google/wire"
 )
 
 func ProvideHandler(model *GetPersonModel) *GetPersonHandler {

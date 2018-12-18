@@ -10,7 +10,7 @@ import (
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/list"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/modules/register"
 	"github.com/PacktPublishing/Hands-On-Dependency-Injection-in-Go/ch12/acme/internal/rest"
-	"github.com/google/go-cloud/wire"
+	"github.com/google/wire"
 )
 
 func main() {

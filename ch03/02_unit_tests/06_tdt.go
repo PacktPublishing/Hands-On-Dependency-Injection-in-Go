@@ -30,7 +30,7 @@ func TestRound(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		in := float64(scenario.in)
+		in := scenario.in
 
 		result := Round(in)
 		assert.Equal(t, scenario.expected, result)
